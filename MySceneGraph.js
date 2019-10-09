@@ -766,6 +766,30 @@ class MySceneGraph {
 
                 this.primitives[primitiveId] = cylind;
             }
+            else if (primitiveType == 'torus') {
+                // slices
+                var slices = this.reader.getFloat(grandChildren[0], 'slices');
+                if (!(slices != null && !isNaN(slices)))
+                    return "unable to parse slices of the primitive coordinates for ID = " + primitiveId;
+
+                // loops
+                var loops = this.reader.getFloat(grandChildren[0], 'loops');
+                if (!(loops != null && !isNaN(loops)))
+                    return "unable to parse loops of the primitive coordinates for ID = " + primitiveId;
+                // outer
+                var outer = this.reader.getFloat(grandChildren[0], 'outer');
+                if (!(outer != null && !isNaN(outer)))
+                    return "unable to parse outer of the primitive coordinates for ID = " + primitiveId;
+
+                // inner
+                var inner = this.reader.getFloat(grandChildren[0], 'inner');
+                if (!(inner != null && !isNaN(inner)))
+                    return "unable to parse inner of the primitive coordinates for ID = " + primitiveId;
+
+                var torus = new MyTorus(this.scene, primitiveId, slices, stacks, outer, inner);
+
+                this.primitives[primitiveId] = torus;
+            }
             else {
                 console.warn("To do: Parse other primitives.");
             }
@@ -786,16 +810,17 @@ class MySceneGraph {
 
 
 
-        var child = [];
-
+        
         var grandChildren = [];
         var grandgrandChildren = [];
         var nodeNames = [];
-
+        
         // Any number of components.
         for (var i = 0; i < children.length; i++) {
-
+            
             var component = [];
+            var child = [];
+            var primitive = [];
 
             if (children[i].nodeName != "component") {
                 this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
@@ -836,10 +861,10 @@ class MySceneGraph {
                 }
                 if (grandgrandChildren[h].nodeName == "transformationref"){
                     var transformationId= this.reader.getString(grandgrandChildren[h], "id");
-                    this.component.transformation = transformationId;
+                    component.transformation = transformationId;
                 }
                 else{
-                    this.transform(grandgrandChildren[h]);
+                    this.transform(grandChildren[transformationIndex], componentID);
                 }
             }
 
@@ -851,7 +876,7 @@ class MySceneGraph {
             grandgrandChildren = grandChildren[childrenIndex].children;
             for (var m = 0; m < grandgrandChildren.length; m++){
                 if (grandgrandChildren[m].nodeName == "primitiveref")
-                    component.primitive = this.reader.getString(grandgrandChildren[m], "id");
+                    primitive.push(this.reader.getString(grandgrandChildren[m], "id"));
                 else if (grandgrandChildren[m].nodeName == "componentref"){
                     child.push(this.reader.getString(grandgrandChildren[m], "id"));
                 }
@@ -859,8 +884,8 @@ class MySceneGraph {
                     this.onXMLMinorError("unknown tag <" + grandgrandChildren[m].nodeName + ">");
                 }
             }
-            console.log(component.primitive + "\n");
-            this.components.child = child;
+            component.primitive = primitive;
+            component.child = child;
             this.components[componentID] = component;
         }
     }
@@ -868,56 +893,64 @@ class MySceneGraph {
     
 
 
-        transform(transfNode){
+        transform(tranformationsNode, componentID){
 
-            var transfMatrix = mat4.create();
+            var finalMatrix = mat4.create();
+            var transfNode;
 
-            //for (var j = 0; j < transfNode.length; j++) {
-                switch (transfNode.nodeName) {
-                    case 'translate':
-                        var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
-                        if (!Array.isArray(coordinates))
-                            return coordinates;
+            for (var i = 0; i < tranformationsNode.children.length; i++){
+                transfNode = tranformationsNode.children[i];
+                var transfMatrix = mat4.create();
+    
+    
+                    switch (transfNode.nodeName) {
+                        case 'translate':
+                            var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
+                            if (!Array.isArray(coordinates))
+                                return coordinates;
+    
+                            transfMatrix = mat4.translate(transfMatrix, transfMatrix, coordinates);
+                            break;
+                        case 'scale':
+                            var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
+                            if (!Array.isArray(coordinates))
+                                return coordinates;
+    
+                            transfMatrix = mat4.scale(transfMatrix, transfMatrix, coordinates);
+                            break;
+                        case 'rotate':
+                            /*var coordinates = this.parseRotation(transfNode, "translate transformation for ID " + transformationID);
+                            var axis = coordinates[0];
+                            var angle = coordinates[1];
+                            */
+                            var axis = this.reader.getString(transfNode, 'axis');
+                            var angle = this.reader.getString(transfNode, 'angle');
+                            angle *= DEGREE_TO_RAD;
+    
+                            if (axis == 'x')
+                                //var vec = new vec3(1, 0, 0);
+                                transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [1, 0, 0]);
+    
+                            if (axis == 'y')
+                                //var vec = new vec3(0, 1, 0);
+                                transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 1, 0]);
+    
+                            if (axis == 'z')
+                                //var vec = new vec3(0, 0, 1);
+                                transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 0, 1]);
+    
+    
+                            //transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, vec);
+                            this.onXMLMinorError("To do: Parse rotate transformations.");
+    
+    
+                            break;
+                    }
+                mat4.multiply(finalMatrix, finalMatrix, transfMatrix);
+            }
 
-                        transfMatrix = mat4.translate(transfMatrix, transfMatrix, coordinates);
-                        break;
-                    case 'scale':
-                        var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
-                        if (!Array.isArray(coordinates))
-                            return coordinates;
-
-                        transfMatrix = mat4.scale(transfMatrix, transfMatrix, coordinates);
-                        break;
-                    case 'rotate':
-                        /*var coordinates = this.parseRotation(transfNode, "translate transformation for ID " + transformationID);
-                        var axis = coordinates[0];
-                        var angle = coordinates[1];
-                        */
-                        var axis = this.reader.getString(transfNode, 'axis');
-                        var angle = this.reader.getString(transfNode, 'angle');
-                        angle *= DEGREE_TO_RAD;
-
-                        if (axis == 'x')
-                            //var vec = new vec3(1, 0, 0);
-                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [1, 0, 0]);
-
-                        if (axis == 'y')
-                            //var vec = new vec3(0, 1, 0);
-                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 1, 0]);
-
-                        if (axis == 'z')
-                            //var vec = new vec3(0, 0, 1);
-                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 0, 1]);
-
-
-                        //transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, vec);
-                        this.onXMLMinorError("To do: Parse rotate transformations.");
-
-
-                        break;
-                }
-            //}
-            this.transformations[20] = transfMatrix;
+            
+            this.transformations[componentID] = finalMatrix;
         }
     
 
@@ -1051,6 +1084,27 @@ class MySceneGraph {
         console.log("   " + message);
     }
 
+    displayComponent(component){
+
+        var id = component.id;
+
+        if (component.primitive.length != 0) {
+            for(var i=0; i < component.primitive.length; i++){
+                var primitiveID = component.primitive[i];
+                this.primitives[primitiveID].display();
+            }
+        }
+
+
+        if (component.child.length !=0){
+            for(var i=0; i < component.child.length; i++){
+                //console.log(i + "\n");
+                //console.log(component.child[i] + "\n");
+                this.displayComponent(this.components[component.child[i]]);
+            }
+        }
+    }
+
     /**
      * Displays the scene, processing each node, starting in the root node.
      */
@@ -1062,18 +1116,19 @@ class MySceneGraph {
         //this.primitives['demoTriangle'].display();
         //this.primitives['demoCylinder'].display();
         //this.primitives['demoSphere'].display();
+        //this.primitives['demoTorus'].display();
 
         //é preciso arranjarmos uma melhor maneira de testar o display dos componentes
 
+
         this.scene.pushMatrix();
-        //var transID = this.components[0].transformation;
-        //this.scene.multMatrix(this.transformations[20]);
-
-
-
-        var primitiveID=this.components["demoRoot"].primitive;
+        var transID = this.transformations[this.components["example"].transformation];
+        this.scene.multMatrix(transID);
+        var primitiveID=this.components["example"].primitive[0];
         this.primitives[primitiveID].display();
         this.scene.popMatrix();
+
+        //this.displayComponent(this.components["demoRoot"]);
 
 
     }

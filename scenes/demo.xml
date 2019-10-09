@@ -60,12 +60,16 @@
         <primitive id="demoCylinder">
             <cylinder baseRadius="2" topRadius="2" height="4" slices="20" stacks="20" />
         </primitive>
+
+        <primitive id="demoTorus">
+            <torus slices="20" loops="20" outer="3" inner="1" />
+        </primitive>
     </primitives>
 
     <components>
         <component id="demoRoot">
             <transformation>
-                <scale x="5" y="1" z="5" />
+                <scale x="1" y="1" z="2" />
                 <rotate axis="x" angle="-45" />
                 <translate x="0" y="0" z="10"/>
             </transformation>
@@ -76,12 +80,13 @@
             <children>
                 <componentref id="example" />
                 <primitiveref id="demoSphere" />
+                <primitiveref id="demoTorus" />
             </children>
         </component>
 
         <component id="example">
             <transformation>
-                <scale x="5" y="1" z="5" />
+                <transformationref id="demoTransform" />
             </transformation>
             <materials>
                 <material id="demoMaterial" />
