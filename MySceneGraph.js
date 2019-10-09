@@ -784,7 +784,9 @@ class MySceneGraph {
 
         this.components = [];
 
-        var component = [];
+
+
+        var child = [];
 
         var grandChildren = [];
         var grandgrandChildren = [];
@@ -792,6 +794,8 @@ class MySceneGraph {
 
         // Any number of components.
         for (var i = 0; i < children.length; i++) {
+
+            var component = [];
 
             if (children[i].nodeName != "component") {
                 this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
@@ -847,19 +851,21 @@ class MySceneGraph {
             grandgrandChildren = grandChildren[childrenIndex].children;
             for (var m = 0; m < grandgrandChildren.length; m++){
                 if (grandgrandChildren[m].nodeName == "primitiveref")
-                    component.primitive = this.reader.getString(grandgrandChildren[0], "id");
+                    component.primitive = this.reader.getString(grandgrandChildren[m], "id");
                 else if (grandgrandChildren[m].nodeName == "componentref"){
-                    //component.children.push(grandgrandChildren[m].nodeName);
-                    this.parseComponents(grandgrandChildren[m]);
+                    child.push(this.reader.getString(grandgrandChildren[m], "id"));
                 }
                 else{
                     this.onXMLMinorError("unknown tag <" + grandgrandChildren[m].nodeName + ">");
                 }
             }
-            
-            this.components.push(component);
+            console.log(component.primitive + "\n");
+            this.components.child = child;
+            this.components[componentID] = component;
         }
     }
+
+    
 
 
         transform(transfNode){
@@ -1060,9 +1066,12 @@ class MySceneGraph {
         //é preciso arranjarmos uma melhor maneira de testar o display dos componentes
 
         this.scene.pushMatrix();
-        var transID = this.components[0].transformation;
-        this.scene.multMatrix(this.transformations[20]);
-        var primitiveID=this.components[0].primitive;
+        //var transID = this.components[0].transformation;
+        //this.scene.multMatrix(this.transformations[20]);
+
+
+
+        var primitiveID=this.components["demoRoot"].primitive;
         this.primitives[primitiveID].display();
         this.scene.popMatrix();
 

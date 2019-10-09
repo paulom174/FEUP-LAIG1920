@@ -74,20 +74,35 @@
             </materials>
             <texture id="demoTexture"/>
             <children>
-                <primitiveref id="demoRectangle" />
                 <componentref id="example" />
+                <primitiveref id="demoSphere" />
             </children>
         </component>
 
-        <component id="demoRoot">
+        <component id="example">
             <transformation>
+                <scale x="5" y="1" z="5" />
             </transformation>
             <materials>
                 <material id="demoMaterial" />
             </materials>
             <texture id="demoTexture"/>
             <children>
-                <primitiveref id="demoSphere" />
+                <componentref id="example1" />
+                <primitiveref id="demoCylinder" />
+            </children>
+        </component>
+
+        <component id="example1">
+            <transformation>
+                <scale x="5" y="1" z="5" />
+            </transformation>
+            <materials>
+                <material id="demoMaterial" />
+            </materials>
+            <texture id="demoTexture"/>
+            <children>
+                <primitiveref id="demoRectangle" />
             </children>
         </component>
 
