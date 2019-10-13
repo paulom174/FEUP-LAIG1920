@@ -3,7 +3,7 @@
  * @constructor
  */
 class MySemiSphere extends CGFobject {
-    constructor(scene, id, slices,stacks){
+    constructor(scene, id, radius, slices,stacks){
     super(scene);
 
     this.slices = slices;

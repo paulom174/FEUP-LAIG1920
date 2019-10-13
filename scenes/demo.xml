@@ -50,15 +50,15 @@
         </primitive>
 
         <primitive id="demoTriangle">
-            <triangle x1="0" y1="0" z1="0" x2="2" y2="0" z2="0" x3="0" y3="2" z3="0" />
+            <triangle x1="0" y1="0" z1="1" x2="2" y2="0" z2="0" x3="2" y3="2" z3="3" />
         </primitive>
 
         <primitive id="demoSphere">
-            <sphere slices="20" stacks="20" />
+            <sphere radius="1" slices="20" stacks="20" />
         </primitive>
 
         <primitive id="demoCylinder">
-            <cylinder baseRadius="2" topRadius="2" height="4" slices="20" stacks="20" />
+            <cylinder base="2" top="2" height="4" slices="20" stacks="20" />
         </primitive>
 
         <primitive id="demoTorus">
@@ -69,9 +69,8 @@
     <components>
         <component id="demoRoot">
             <transformation>
-                <scale x="1" y="1" z="2" />
-                <rotate axis="x" angle="-45" />
-                <translate x="0" y="0" z="10"/>
+                <scale x="5" y="3" z="5" />
+                <translate x="0" y="10" z="0" /> 
             </transformation>
             <materials>
                 <material id="demoMaterial" />
@@ -86,7 +85,8 @@
 
         <component id="example">
             <transformation>
-                <transformationref id="demoTransform" />
+                <scale x="5" y="3" z="5" />
+                <translate x="0" y="10" z="0" /> 
             </transformation>
             <materials>
                 <material id="demoMaterial" />
@@ -100,7 +100,8 @@
 
         <component id="example1">
             <transformation>
-                <scale x="5" y="1" z="5" />
+                <scale x="5" y="3" z="5" />
+                <translate x="0" y="10" z="0" /> 
             </transformation>
             <materials>
                 <material id="demoMaterial" />
