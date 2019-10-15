@@ -113,11 +113,11 @@ class MySceneGraph {
         }
 
         // <ambient>
-        if ((index = nodeNames.indexOf("ambient")) == -1)
-            return "tag <ambient> missing";
+        if ((index = nodeNames.indexOf("globals")) == -1)
+            return "tag <globals> missing";
         else {
             if (index != AMBIENT_INDEX)
-                this.onXMLMinorError("tag <ambient> out of order");
+                this.onXMLMinorError("tag <globals> out of order");
 
             //Parse ambient block
             if ((error = this.parseAmbient(nodes[index])) != null)
@@ -394,6 +394,37 @@ class MySceneGraph {
     parseTextures(texturesNode) {
 
         //For each texture in textures block, check ID and file URL
+        
+        this.textures = [];
+
+        var children = texturesNode.children;
+
+        var grandChildren = [];
+
+        // Any number of primitives.
+        for (var i = 0; i < children.length; i++) {
+
+            if (children[i].nodeName != "texture") {
+                this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
+                continue;
+            }
+
+            // Get id of the current texture.
+            var textureId = this.reader.getString(children[i], 'id');
+            if (textureId == null)
+                return "no ID defined for texture";
+
+            // Checks for repeated IDs.
+            if (this.textures[textureId] != null)
+                return "ID must be unique for each texture (conflict: ID = " + textureId + ")";
+
+            //Get file name
+            var fileName = this.reader.getString(children[i], 'file');
+            if (fileName == null)
+                return "no name defined for file";
+
+        }
+
         this.onXMLMinorError("To do: Parse textures.");
         return null;
     }
@@ -826,10 +857,6 @@ class MySceneGraph {
         var children = componentsNode.children;
 
         this.components = [];
-
-
-
-        
         var grandChildren = [];
         var grandgrandChildren = [];
         var nodeNames = [];
@@ -895,6 +922,18 @@ class MySceneGraph {
 
             
             // Texture
+            var texture=[];
+            var textureId = this.reader.getString(grandChildren[textureIndex], "id");
+            var s = this.reader.getString(grandChildren[textureIndex], "length_s");
+            var t = this.reader.getString(grandChildren[textureIndex], "length_t");
+
+            texture[0]= textureId;    
+            texture[1]= s;    
+            texture[2]= t;    
+
+            component.texture=texture;
+
+            console.log(component.texture);
             
             // Children
             grandgrandChildren = grandChildren[childrenIndex].children;
