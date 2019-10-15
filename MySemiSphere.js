@@ -7,7 +7,8 @@ class MySemiSphere extends CGFobject {
     super(scene);
 
     this.slices = slices;
-    this.stacks = stacks;
+    this.stacks = 2*stacks;
+    this.radius = radius;
 
 
     this.initBuffers();
@@ -21,13 +22,13 @@ initBuffers()
     this.texCoords = [];
     
     var ang = 2 * Math.PI / this.slices;
-    var fi = (Math.PI / 2) / this.stacks;
+    var fi = Math.PI/ this.stacks;
     
     for (var j = 0; j <= this.stacks; j++) {
     
         for (let i = 0; i <= this.slices; i++) {
-            this.vertices.push(Math.cos(ang * i) * Math.cos(fi * j), Math.sin(ang * i) * Math.cos(fi * j), Math.sin(fi * j));
-            this.normals.push(Math.cos(ang * i) * Math.cos(fi * j), Math.sin(ang * i) * Math.cos(fi * j), Math.sin(fi * j));
+            this.vertices.push(this.radius*Math.cos(ang * i) * Math.cos(fi * j), this.radius*Math.sin(ang * i) * Math.cos(fi * j), this.radius*Math.sin(fi * j));
+            this.normals.push(this.radius*Math.cos(ang * i) * Math.cos(fi * j), this.radius*Math.sin(ang * i) * Math.cos(fi * j), this.radius*Math.sin(fi * j));
             this.texCoords.push(i * 1 / this.slices, j * 1 / this.stacks);
         }
     }

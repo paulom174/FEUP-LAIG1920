@@ -229,6 +229,7 @@ class MySceneGraph {
     parseView(viewsNode) {
         this.onXMLMinorError("To do: Parse views and create cameras.");
 
+
         return null;
     }
 
@@ -602,7 +603,6 @@ class MySceneGraph {
 
 
                         //transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, vec);
-                        this.onXMLMinorError("To do: Parse rotate transformations.");
 
 
                         break;
@@ -724,7 +724,7 @@ class MySceneGraph {
                     return "unable to parse y3 of the primitive coordinates for ID = " + primitiveId;
 
                 // z3
-                var z3 = this.reader.getFloat(grandChildren[0], 'y3');
+                var z3 = this.reader.getFloat(grandChildren[0], 'z3');
                 if (!(z3 != null && !isNaN(z3)))
                     return "unable to parse z3 of the primitive coordinates for ID = " + primitiveId;
 
@@ -869,7 +869,6 @@ class MySceneGraph {
             var textureIndex = nodeNames.indexOf("texture");
             var childrenIndex = nodeNames.indexOf("children");
 
-            this.onXMLMinorError("To do: Parse components.");
             // Transformations
             grandgrandChildren = grandChildren[transformationIndex].children;
 
@@ -892,6 +891,8 @@ class MySceneGraph {
             }
 
             // Materials
+
+
             
             // Texture
             
@@ -964,7 +965,6 @@ class MySceneGraph {
     
     
                             //transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, vec);
-                            this.onXMLMinorError("To do: Parse rotate transformations.");
     
     
                             break;
@@ -1109,7 +1109,6 @@ class MySceneGraph {
 
     displayComponent(component){
 
-
         if (component.primitive.length != 0) {
             for(var i=0; i < component.primitive.length; i++){
 
@@ -1150,7 +1149,7 @@ class MySceneGraph {
         //this.primitives['demoCylinder'].display();
         //this.primitives['demoSphere'].display();
         //this.primitives['demoTorus'].display();
-        this.primitives['demoTriangle'].display();
+        //this.primitives['demoTriangle'].display();
 
 
 
@@ -1161,7 +1160,7 @@ class MySceneGraph {
         //this.primitives[primitiveID].display();
         //this.scene.popMatrix();
 
-        //this.displayComponent(this.components["demoRoot"]);
+        this.displayComponent(this.components[this.idRoot]);
 
 
     }

@@ -38,7 +38,7 @@
 
     <transformations>
         <transformation id="demoTransform">
-            <scale x="5" y="1" z="5" />
+            <scale x="2" y="1" z="0.5" />
             <rotate axis="x" angle="-45" />
             <rotate axis="z" angle="-45" />
         </transformation>
@@ -50,11 +50,11 @@
         </primitive>
 
         <primitive id="demoTriangle">
-            <triangle x1="0" y1="0" z1="1" x2="2" y2="0" z2="0" x3="2" y3="2" z3="3" />
+            <triangle x1="0" y1="0" z1="3" x2="2" y2="0" z2="2" x3="0" y3="2" z3="1" />
         </primitive>
 
         <primitive id="demoSphere">
-            <sphere radius="1" slices="20" stacks="20" />
+            <sphere radius="3" slices="20" stacks="20" />
         </primitive>
 
         <primitive id="demoCylinder">
@@ -69,8 +69,6 @@
     <components>
         <component id="demoRoot">
             <transformation>
-                <scale x="5" y="3" z="5" />
-                <translate x="0" y="10" z="0" /> 
             </transformation>
             <materials>
                 <material id="demoMaterial" />
@@ -78,15 +76,12 @@
             <texture id="demoTexture"/>
             <children>
                 <componentref id="example" />
-                <primitiveref id="demoSphere" />
-                <primitiveref id="demoTorus" />
             </children>
         </component>
 
         <component id="example">
             <transformation>
-                <scale x="5" y="3" z="5" />
-                <translate x="0" y="10" z="0" /> 
+                <transformationref id="demoTransform" />
             </transformation>
             <materials>
                 <material id="demoMaterial" />
@@ -94,14 +89,14 @@
             <texture id="demoTexture"/>
             <children>
                 <componentref id="example1" />
+                <primitiveref id="demoTorus" />
                 <primitiveref id="demoCylinder" />
             </children>
         </component>
 
         <component id="example1">
             <transformation>
-                <scale x="5" y="3" z="5" />
-                <translate x="0" y="10" z="0" /> 
+                <transformationref id="demoTransform" />
             </transformation>
             <materials>
                 <material id="demoMaterial" />
