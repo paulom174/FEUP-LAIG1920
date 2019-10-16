@@ -28,7 +28,7 @@ class MyTriangle extends CGFobject {
 		this.b = Math.sqrt(Math.pow((this.x3 - this.x2), 2) + Math.pow((this.y3 - this.y2), 2) + Math.pow((this.z3 - this.z2), 2));
 		this.c = Math.sqrt(Math.pow((this.x2 - this.x1), 2) + Math.pow((this.y2 - this.y1), 2) + Math.pow((this.z2 - this.z1), 2));
 
-		this.cosalpha = ((this.a*this.a - this.b*this.b + this.c*this.c)/2*this.a*this.c);
+		this.cosalpha = ((this.a*this.a - this.b*this.b + this.c*this.c)/(2*this.a*this.c));
 
 		this.sinalpha = Math.sqrt(1 - Math.pow(this.cosalpha,2));
 
@@ -63,10 +63,10 @@ class MyTriangle extends CGFobject {
         */
 
 		this.texCoords = [
-			0, 1,
-			1, 1,
 			0, 0,
-			1, 0
+			0, 1,
+			1, 0,
+			1, 1
 		];
 		
 		this.primitiveType = this.scene.gl.TRIANGLES;

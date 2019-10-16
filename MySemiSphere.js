@@ -32,7 +32,8 @@ initBuffers()
             this.texCoords.push(i * 1 / this.slices, j * 1 / this.stacks);
         }
     }
-    
+
+
     
     for (var i = 0; i < this.stacks; i++) {
         for (let j = 0; j < this.slices; j++) {

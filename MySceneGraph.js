@@ -227,10 +227,134 @@ class MySceneGraph {
      * @param {view block element} viewsNode
      */
     parseView(viewsNode) {
-        this.onXMLMinorError("To do: Parse views and create cameras.");
+        /*this.onXMLMinorError("To do: Parse views and create cameras.");
+        var children = lightsNode.children;
+
+        this.lights = [];
+        var numLights = 0;
+
+        var grandChildren = [];
+        var nodeNames = [];
+
+        // Any number of lights.
+        for (var i = 0; i < children.length; i++) {
+
+            // Storing light information
+            var global = [];
+            var attributeNames = [];
+            var attributeTypes = [];
+
+            //Check type of light
+            if (children[i].nodeName != "omni" && children[i].nodeName != "spot") {
+                this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
+                continue;
+            }
+            else {
+                attributeNames.push(...["location", "ambient", "diffuse", "specular"]);
+                attributeTypes.push(...["position", "color", "color", "color"]);
+            }
+
+            // Get id of the current light.
+            var lightId = this.reader.getString(children[i], 'id');
+            if (lightId == null)
+                return "no ID defined for light";
+
+            // Checks for repeated IDs.
+            if (this.lights[lightId] != null)
+                return "ID must be unique for each light (conflict: ID = " + lightId + ")";
+
+            // Light enable/disable
+            var enableLight = true;
+            var aux = this.reader.getBoolean(children[i], 'enabled');
+            if (!(aux != null && !isNaN(aux) && (aux == true || aux == false)))
+                this.onXMLMinorError("unable to parse value component of the 'enable light' field for ID = " + lightId + "; assuming 'value = 1'");
+
+            enableLight = aux || 1;
+
+            //Add enabled boolean and type name to light info
+            global.push(enableLight);
+            global.push(children[i].nodeName);
+
+            grandChildren = children[i].children;
+            // Specifications for the current light.
+
+            nodeNames = [];
+            for (var j = 0; j < grandChildren.length; j++) {
+                nodeNames.push(grandChildren[j].nodeName);
+            }
+
+            for (var j = 0; j < attributeNames.length; j++) {
+                var attributeIndex = nodeNames.indexOf(attributeNames[j]);
+
+                if (attributeIndex != -1) {
+                    if (attributeTypes[j] == "position")
+                        var aux = this.parseCoordinates4D(grandChildren[attributeIndex], "light position for ID" + lightId);
+                    else
+                        var aux = this.parseColor(grandChildren[attributeIndex], attributeNames[j] + " illumination for ID" + lightId);
+
+                    if (!Array.isArray(aux))
+                        return aux;
+
+                    global.push(aux);
+                }
+                else
+                    return "light " + attributeNames[i] + " undefined for ID = " + lightId;
+            }
+
+            var attributeIndex = nodeNames.indexOf("attenuation");
+
+            var aux = this.reader.getFloat(grandChildren[attributeIndex], 'constant');
+
+            global.push(aux);
+
+            var aux = this.reader.getFloat(grandChildren[attributeIndex], 'linear');
+
+            global.push(aux);
+
+            var aux = this.reader.getFloat(grandChildren[attributeIndex], 'quadratic');
+
+            global.push(aux);
 
 
-        return null;
+
+            // Gets the additional attributes of the spot light
+            if (children[i].nodeName == "spot") {
+                var angle = this.reader.getFloat(children[i], 'angle');
+                if (!(angle != null && !isNaN(angle)))
+                    return "unable to parse angle of the light for ID = " + lightId;
+
+                var exponent = this.reader.getFloat(children[i], 'exponent');
+                if (!(exponent != null && !isNaN(exponent)))
+                    return "unable to parse exponent of the light for ID = " + lightId;
+
+                var targetIndex = nodeNames.indexOf("target");
+
+                // Retrieves the light target.
+                var targetLight = [];
+                if (targetIndex != -1) {
+                    var aux = this.parseCoordinates3D(grandChildren[targetIndex], "target light for ID " + lightId);
+                    if (!Array.isArray(aux))
+                        return aux;
+
+                    targetLight = aux;
+                }
+                else
+                    return "light target undefined for ID = " + lightId;
+
+                global.push(...[angle, exponent, targetLight])
+            }
+
+            this.lights[lightId] = global;
+            numLights++;
+        }
+
+        if (numLights == 0)
+            return "at least one light must be defined";
+        else if (numLights > 8)
+            this.onXMLMinorError("too many lights defined; WebGL imposes a limit of 8 lights");
+
+        this.log("Parsed lights");
+        return null;*/
     }
 
     /**
@@ -346,6 +470,23 @@ class MySceneGraph {
                 else
                     return "light " + attributeNames[i] + " undefined for ID = " + lightId;
             }
+
+
+
+                var attributeIndex = nodeNames.indexOf("attenuation");
+
+                console.log(attributeIndex);
+
+                if(attributeIndex == -1){
+                    return "Tag attenuation is missing from light" + lightId;
+                }
+                var aux = this.reader.getFloat(grandChildren[attributeIndex], 'constant');       
+                global.push(aux);    
+                var aux = this.reader.getFloat(grandChildren[attributeIndex], 'linear');           
+                global.push(aux);           
+                var aux = this.reader.getFloat(grandChildren[attributeIndex], 'quadratic');
+                global.push(aux);
+
 
             // Gets the additional attributes of the spot light
             if (children[i].nodeName == "spot") {
@@ -1168,7 +1309,28 @@ class MySceneGraph {
         console.log("   " + message);
     }
 
-    displayComponent(component) {
+    displayComponent(component, parentmat, parenttext) {
+
+        var mat;
+        var text;
+
+        if(component.material[0] == "inherit"){
+            mat = parentmat;
+        }
+        else{
+            mat = this.materials[component.material[0]];
+        }
+
+        if(component.texture[0] == "inherit"){
+            text = parenttext;
+        }
+        else if(component.texture[0] == "none"){
+            text = null;
+        }
+        else{
+            text = this.textures[component.texture[0]];
+        }
+
 
 
         if (component.primitive.length != 0) {
@@ -1179,11 +1341,13 @@ class MySceneGraph {
                 this.scene.multMatrix(transID);
                 var primitiveID = component.primitive[i];
 
+                mat.setTexture(text);
+                mat.apply();
 
-                
-                //for(var j=0; j < component.material.length; j++){
-                    //}
-                //this.primitives[primitiveID].updateTexCoords(component.texture[1], component.texture[2]);
+                this.primitives[primitiveID].updateTexCoords(component.texture[1], component.texture[2]);
+
+                mat.setTextureWrap('REPEAT', 'REPEAT');
+
                 this.primitives[primitiveID].display();
                 this.scene.popMatrix();
                     
@@ -1193,27 +1357,12 @@ class MySceneGraph {
             
             if (component.child.length != 0) {
                 for (var i = 0; i < component.child.length; i++) {
+                    
                     this.scene.pushMatrix();
-                    //if (this.transformations[component.id] != null){
-
-
-                       if (component.material[0] != "inherit") {
-                            var mat = this.materials[component.material[0]];
-                            mat.apply();
-                        }
-            
-                    if (component.texture[0] != "inherit" && component.texture[0] != "none") {
-                        this.textures[component.texture[0]].bind(0);
-                        //this.primitives[primitiveID].updateTexCoords(component.texture[1], component.texture[2]);
-                    }
-                        
-
-
-                var transID = this.transformations[component.id];
-                this.scene.multMatrix(transID);
-                //}
-                this.displayComponent(this.components[component.child[i]]);
-                this.scene.popMatrix();
+                    var transID = this.transformations[component.id];
+                    this.scene.multMatrix(transID);
+                    this.displayComponent(this.components[component.child[i]], mat, text);
+                    this.scene.popMatrix();
             }
         }
     }
@@ -1233,8 +1382,7 @@ class MySceneGraph {
         //this.primitives['demoTriangle'].display();
 
 
-        this.displayComponent(this.components[this.idRoot]);
-
+        this.displayComponent(this.components[this.idRoot], null, null);
 
     }
 }

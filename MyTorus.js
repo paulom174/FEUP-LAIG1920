@@ -43,6 +43,7 @@ initBuffers()
             this.indices.push((i + 1) * (this.slices + 1) + j, (i + 1) * (this.slices + 1) + 1 + j,i * (this.slices + 1) + 1 + j);
         }
     }
+
     
     this.primitiveType = this.scene.gl.TRIANGLES;
     this.initGLBuffers();

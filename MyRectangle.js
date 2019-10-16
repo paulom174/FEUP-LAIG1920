@@ -27,7 +27,7 @@ class MyRectangle extends CGFobject {
 		//Counter-clockwise reference of vertices
 		this.indices = [
 			0, 1, 2,
-			1, 3, 2
+			1, 3, 2,
 		];
 
 		//Facing Z positive
@@ -68,7 +68,7 @@ class MyRectangle extends CGFobject {
 		var minS = 0;
 		var minT=0;
 		var maxS = (this.x2 - this.x1) / s;
-		var maxT = (this.y2 - this.y1)/t;
+		var maxT = (this.y2 - this.y1)/ t;
 
 
 		this.texCoords = [
