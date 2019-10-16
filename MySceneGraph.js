@@ -394,12 +394,11 @@ class MySceneGraph {
     parseTextures(texturesNode) {
 
         //For each texture in textures block, check ID and file URL
-        
+
         this.textures = [];
 
         var children = texturesNode.children;
 
-        var grandChildren = [];
 
         // Any number of primitives.
         for (var i = 0; i < children.length; i++) {
@@ -419,13 +418,16 @@ class MySceneGraph {
                 return "ID must be unique for each texture (conflict: ID = " + textureId + ")";
 
             //Get file name
-            var fileName = this.reader.getString(children[i], 'file');
-            if (fileName == null)
-                return "no name defined for file";
+            var path = this.reader.getString(children[i], 'file');
+            if (path == null)
+                return "no path defined for file";
+
+            var text = new CGFtexture(this.scene, "./" + path);
+
+            this.textures[textureId] = text;
 
         }
 
-        this.onXMLMinorError("To do: Parse textures.");
         return null;
     }
 
@@ -439,7 +441,6 @@ class MySceneGraph {
         this.materials = [];
 
         var grandChildren = [];
-        var nodeNames = [];
 
         // Any number of materials.
         for (var i = 0; i < children.length; i++) {
@@ -454,29 +455,36 @@ class MySceneGraph {
             if (materialID == null)
                 return "no ID defined for material";
 
-                var shininess = this.reader.getFloat(children[i], 'shininess');
-                if (shininess == null)
+            var shininess = this.reader.getFloat(children[i], 'shininess');
+            if (shininess == null)
                 return "no shininess defined for material";
-                
-                // Checks for repeated IDs.
+
+            // Checks for repeated IDs.
             if (this.materials[materialID] != null)
-            return "ID must be unique for each light (conflict: ID = " + materialID + ")";
-            
+                return "ID must be unique for each light (conflict: ID = " + materialID + ")";
+
             grandChildren = children[i].children;
+
             
+
+
             // Validate the material type
             if (grandChildren.length != 4 ||
                 (grandChildren[0].nodeName != 'emission' && grandChildren[0].nodeName != 'ambient' &&
-                grandChildren[0].nodeName != 'difuse' && grandChildren[0].nodeName != 'specular')) {
-                    return "There must be exactly 4 primitive type (emission, ambient, difuse and specular)";
+                    grandChildren[0].nodeName != 'difuse' && grandChildren[0].nodeName != 'specular')) {
+                return "There must be exactly 4 primitive type (emission, ambient, difuse and specular)";
             }
-                
-            var materialType = grandChildren[0].nodeName;
-            var r,g,b,a;
+
             var mat = new CGFappearance(this.scene);
             mat.setShininess(shininess);
 
-            if (materialType == 'emission'){
+            for (var h=0; h < grandChildren.length; h++){
+
+            
+            var materialType = grandChildren[h].nodeName;
+            var r, g, b, a;
+
+            if (materialType == 'emission') {
                 // R
                 r = this.reader.getFloat(grandChildren[0], 'r');
                 if (!(r != null && !isNaN(r)))
@@ -493,70 +501,71 @@ class MySceneGraph {
                 a = this.reader.getFloat(grandChildren[0], 'a');
                 if (!(a != null && !isNaN(a)))
                     return "unable to parse r of RGB for ID = " + materialID;
-                mat.setEmission(r,g,b,a);
-                } 
-                else if (materialType == 'ambient') {
-                    // R
-                    r = this.reader.getFloat(grandChildren[0], 'r');
-                    if (!(r != null && !isNaN(r)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    // G
-                    g = this.reader.getFloat(grandChildren[0], 'g');
-                    if (!(g != null && !isNaN(g)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    // B
-                    b = this.reader.getFloat(grandChildren[0], 'b');
-                    if (!(b != null && !isNaN(b)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    // A
-                    a = this.reader.getFloat(grandChildren[0], 'a');
-                    if (!(a != null && !isNaN(a)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    mat.setAmbient(r,g,b,a);
-                }
-                else if (materialType == 'difuse') {
-                    // R
-                    r = this.reader.getFloat(grandChildren[0], 'r');
-                    if (!(r != null && !isNaN(r)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    // G
-                    g = this.reader.getFloat(grandChildren[0], 'g');
-                    if (!(g != null && !isNaN(g)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    // B
-                    b = this.reader.getFloat(grandChildren[0], 'b');
-                    if (!(b != null && !isNaN(b)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    // A
-                    a = this.reader.getFloat(grandChildren[0], 'a');
-                    if (!(a != null && !isNaN(a)))
-                    return "unable to parse r of RGB for ID = " + materialID;
-                    mat.setDiffuse(r,g,b,a);
+                mat.setEmission(r, g, b, a);
             }
-            else{
+            else if (materialType == 'ambient') {
                 // R
-                r = this.reader.getFloat(grandChildren[0], 'r');
+                r = this.reader.getFloat(grandChildren[1], 'r');
                 if (!(r != null && !isNaN(r)))
                     return "unable to parse r of RGB for ID = " + materialID;
-                    // G
-                    g = this.reader.getFloat(grandChildren[0], 'g');
-                    if (!(g != null && !isNaN(g)))
+                // G
+                g = this.reader.getFloat(grandChildren[1], 'g');
+                if (!(g != null && !isNaN(g)))
                     return "unable to parse r of RGB for ID = " + materialID;
-                    // B
-                    b = this.reader.getFloat(grandChildren[0], 'b');
-                    if (!(b != null && !isNaN(b)))
+                // B
+                b = this.reader.getFloat(grandChildren[1], 'b');
+                if (!(b != null && !isNaN(b)))
                     return "unable to parse r of RGB for ID = " + materialID;
-                    // A
-                    a = this.reader.getFloat(grandChildren[0], 'a');
-                    if (!(a != null && !isNaN(a)))
+                // A
+                a = this.reader.getFloat(grandChildren[1], 'a');
+                if (!(a != null && !isNaN(a)))
                     return "unable to parse r of RGB for ID = " + materialID;
-                    mat.setSpecular(r,g,b,a);
+                mat.setAmbient(r, g, b, a);
             }
-
-
-
-            this.onXMLMinorError("To do: Parse materials.");
+            else if (materialType == 'diffuse') {
+                // R
+                r = this.reader.getFloat(grandChildren[2], 'r');
+                if (!(r != null && !isNaN(r)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                // G
+                g = this.reader.getFloat(grandChildren[2], 'g');
+                if (!(g != null && !isNaN(g)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                // B
+                b = this.reader.getFloat(grandChildren[2], 'b');
+                if (!(b != null && !isNaN(b)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                // A
+                a = this.reader.getFloat(grandChildren[2], 'a');
+                if (!(a != null && !isNaN(a)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                mat.setDiffuse(r, g, b, a);
+            }
+            else {
+                // R
+                r = this.reader.getFloat(grandChildren[3], 'r');
+                if (!(r != null && !isNaN(r)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                // G
+                g = this.reader.getFloat(grandChildren[3], 'g');
+                if (!(g != null && !isNaN(g)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                // B
+                b = this.reader.getFloat(grandChildren[3], 'b');
+                if (!(b != null && !isNaN(b)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                // A
+                a = this.reader.getFloat(grandChildren[3], 'a');
+                if (!(a != null && !isNaN(a)))
+                    return "unable to parse r of RGB for ID = " + materialID;
+                mat.setSpecular(r, g, b, a);
+            }
         }
+
+            this.materials[materialID] = mat;
+            
+        }
+
 
         //this.log("Parsed materials");
         return null;
@@ -860,10 +869,10 @@ class MySceneGraph {
         var grandChildren = [];
         var grandgrandChildren = [];
         var nodeNames = [];
-        
+
         // Any number of components.
         for (var i = 0; i < children.length; i++) {
-            
+
             var component = [];
             var child = [];
             var primitive = [];
@@ -902,48 +911,61 @@ class MySceneGraph {
             var matrix = mat4.create();
             this.transformations[component.id] = matrix;
 
-            for (var h = 0; h < grandgrandChildren.length; h++){
+            for (var h = 0; h < grandgrandChildren.length; h++) {
                 if (grandgrandChildren[h].nodeName != "transformationref" && grandgrandChildren[h].nodeName != "translate"
-                    && grandgrandChildren[h].nodeName != "scale" && grandgrandChildren[h].nodeName != "rotate"){
-                    this.onXMLMinorError("unknown tag <" + grandgrandChildren[h].nodeName + ">");  
+                    && grandgrandChildren[h].nodeName != "scale" && grandgrandChildren[h].nodeName != "rotate") {
+                    this.onXMLMinorError("unknown tag <" + grandgrandChildren[h].nodeName + ">");
                     continue;
                 }
-                if (grandgrandChildren[h].nodeName == "transformationref"){
-                    var transformationId= this.reader.getString(grandgrandChildren[h], "id");
+                if (grandgrandChildren[h].nodeName == "transformationref") {
+                    var transformationId = this.reader.getString(grandgrandChildren[h], "id");
                     component.transformation = transformationId;
                 }
-                else{
+                else {
                     this.transform(grandChildren[transformationIndex], componentID);
                 }
             }
 
             // Materials
 
+            var materials = [];
+            grandgrandChildren = grandChildren[materialsIndex].children;
 
-            
+            for (var p = 0; p < grandgrandChildren.length; p++) {
+                if (grandgrandChildren[p].nodeName != "material") {
+                    this.onXMLMinorError("unknown tag <" + grandgrandChildren[p].nodeName + ">");
+                    continue;
+                }
+                var materialId = this.reader.getString(grandgrandChildren[p], "id");
+                materials.push(materialId);
+            }
+
+            component.material = materials;
+
+
             // Texture
-            var texture=[];
+            var texturas = [];
             var textureId = this.reader.getString(grandChildren[textureIndex], "id");
-            var s = this.reader.getString(grandChildren[textureIndex], "length_s");
-            var t = this.reader.getString(grandChildren[textureIndex], "length_t");
+            var s = this.reader.getFloat(grandChildren[textureIndex], "length_s");
+            var t = this.reader.getFloat(grandChildren[textureIndex], "length_t");
 
-            texture[0]= textureId;    
-            texture[1]= s;    
-            texture[2]= t;    
+            texturas[0] = textureId;
+            texturas[1] = s;
+            texturas[2] = t;
 
-            component.texture=texture;
+            component.texture = texturas;
 
-            console.log(component.texture);
-            
+
+
             // Children
             grandgrandChildren = grandChildren[childrenIndex].children;
-            for (var m = 0; m < grandgrandChildren.length; m++){
+            for (var m = 0; m < grandgrandChildren.length; m++) {
                 if (grandgrandChildren[m].nodeName == "primitiveref")
                     primitive.push(this.reader.getString(grandgrandChildren[m], "id"));
-                else if (grandgrandChildren[m].nodeName == "componentref"){
+                else if (grandgrandChildren[m].nodeName == "componentref") {
                     child.push(this.reader.getString(grandgrandChildren[m], "id"));
                 }
-                else{
+                else {
                     this.onXMLMinorError("unknown tag <" + grandgrandChildren[m].nodeName + ">");
                 }
             }
@@ -1146,29 +1168,49 @@ class MySceneGraph {
         console.log("   " + message);
     }
 
-    displayComponent(component){
+    displayComponent(component) {
+
 
         if (component.primitive.length != 0) {
-            for(var i=0; i < component.primitive.length; i++){
+            for (var i = 0; i < component.primitive.length; i++) {
 
                 this.scene.pushMatrix();
                 var transID = this.transformations[component.id];
                 this.scene.multMatrix(transID);
                 var primitiveID = component.primitive[i];
+
+
+                
+                //for(var j=0; j < component.material.length; j++){
+                    //}
+                //this.primitives[primitiveID].updateTexCoords(component.texture[1], component.texture[2]);
                 this.primitives[primitiveID].display();
                 this.scene.popMatrix();
-
-            }
-        }
-
-
-        if (component.child.length !=0){
-            for(var i=0; i < component.child.length; i++){
-                this.scene.pushMatrix();
-                //if (this.transformations[component.id] != null){
                     
-                    var transID = this.transformations[component.id];
-                    this.scene.multMatrix(transID);
+                }
+            }
+            
+            
+            if (component.child.length != 0) {
+                for (var i = 0; i < component.child.length; i++) {
+                    this.scene.pushMatrix();
+                    //if (this.transformations[component.id] != null){
+
+
+                       if (component.material[0] != "inherit") {
+                            var mat = this.materials[component.material[0]];
+                            mat.apply();
+                        }
+            
+                    if (component.texture[0] != "inherit" && component.texture[0] != "none") {
+                        this.textures[component.texture[0]].bind(0);
+                        //this.primitives[primitiveID].updateTexCoords(component.texture[1], component.texture[2]);
+                    }
+                        
+
+
+                var transID = this.transformations[component.id];
+                this.scene.multMatrix(transID);
                 //}
                 this.displayComponent(this.components[component.child[i]]);
                 this.scene.popMatrix();
@@ -1190,14 +1232,6 @@ class MySceneGraph {
         //this.primitives['demoTorus'].display();
         //this.primitives['demoTriangle'].display();
 
-
-
-        //this.scene.pushMatrix();
-        //var transID = this.transformations[this.components["example"].transformation];
-        //this.scene.multMatrix(transID);
-        //var primitiveID=this.components["example"].primitive[0];
-        //this.primitives[primitiveID].display();
-        //this.scene.popMatrix();
 
         this.displayComponent(this.components[this.idRoot]);
 

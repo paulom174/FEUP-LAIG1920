@@ -22,6 +22,17 @@ class MyTriangle extends CGFobject {
 	}
 	
 	initBuffers() {
+
+
+		this.a = Math.sqrt(Math.pow((this.x1 - this.x3), 2) + Math.pow((this.y1 - this.y3), 2) + Math.pow((this.z1 - this.z3), 2));
+		this.b = Math.sqrt(Math.pow((this.x3 - this.x2), 2) + Math.pow((this.y3 - this.y2), 2) + Math.pow((this.z3 - this.z2), 2));
+		this.c = Math.sqrt(Math.pow((this.x2 - this.x1), 2) + Math.pow((this.y2 - this.y1), 2) + Math.pow((this.z2 - this.z1), 2));
+
+		this.cosalpha = ((this.a*this.a - this.b*this.b + this.c*this.c)/2*this.a*this.c);
+
+		this.sinalpha = Math.sqrt(1 - Math.pow(this.cosalpha,2));
+
+
 		this.vertices = [
 			this.x1, this.y1, this.z1,	//0
 			this.x2, this.y2, this.z2,	//1
@@ -30,7 +41,8 @@ class MyTriangle extends CGFobject {
 
 		//Counter-clockwise reference of vertices
 		this.indices = [
-			0, 1, 2
+			0, 1, 2,
+			0,2,1
 		];
 
 		//Facing Z positive
@@ -66,8 +78,12 @@ class MyTriangle extends CGFobject {
 	 * Updates the list of texture coordinates of the triangle
 	 * @param {Array} coords - Array of texture coordinates
 	 */
-	updateTexCoords(coords) {
-		this.texCoords = [...coords];
+	updateTexCoords(s,t) {
+		this.texCoords = [
+			0,0,
+			this.a/s, 0,
+			this.c * this.cosalpha / s, this.c * this.sinalpha / t
+		];
 		this.updateTexCoordsGLBuffers();
 	}
 }
