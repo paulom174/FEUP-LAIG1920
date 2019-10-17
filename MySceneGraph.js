@@ -1314,6 +1314,7 @@ class MySceneGraph {
         var mat;
         var text;
 
+
         if(component.material[0] == "inherit"){
             mat = parentmat;
         }
