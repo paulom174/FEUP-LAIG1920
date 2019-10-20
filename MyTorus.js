@@ -21,6 +21,7 @@ initBuffers()
     this.indices = [];
     this.normals = [];
     this.texCoords = [];
+    this.auxtexCoords = [];
     
     var ang = 2 * Math.PI / this.slices;
     var fi = 2 * Math.PI / this.loops;
@@ -30,7 +31,7 @@ initBuffers()
         for (let i = 0; i <= this.slices; i++) {
             this.vertices.push((this.outer + this.inner*Math.cos(ang * i)) * Math.cos(fi * j), (this.outer+this.inner*Math.cos(ang * i)) * Math.sin(fi * j), this.inner*Math.sin(ang * i));
             this.normals.push(Math.cos(ang * i) * Math.cos(fi * j), Math.cos(ang * i) * Math.sin(fi * j), Math.sin(ang * i));
-            this.texCoords.push(i * 1 / this.slices, j * 1 / this.loops);
+            this.auxtexCoords.push(i * 1 / this.slices, j * 1 / this.loops);
         }
     }
     
@@ -44,13 +45,17 @@ initBuffers()
         }
     }
 
+
     
     this.primitiveType = this.scene.gl.TRIANGLES;
     this.initGLBuffers();
     }
 
     updateTexCoords(s, t) {
-        
+        for(var i=0; i < this.auxtexCoords.length; i+=2){
+            this.texCoords[i] = this.auxtexCoords[i] / s;
+            this.texCoords[i+1] = this.auxtexCoords[i+1] / t;
+        }
         this.updateTexCoordsGLBuffers();
     }
 };

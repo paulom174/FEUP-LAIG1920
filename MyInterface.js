@@ -24,6 +24,9 @@ class MyInterface extends CGFinterface {
 
         this.initKeys();
 
+
+
+
         return true;
     }
 
@@ -38,6 +41,12 @@ class MyInterface extends CGFinterface {
 
     processKeyDown(event) {
         this.activeKeys[event.code]=true;
+
+        if(event.key === 'm') {
+            this.scene.graph.key++;
+        }
+
+        
     };
 
     processKeyUp(event) {
@@ -46,5 +55,9 @@ class MyInterface extends CGFinterface {
 
     isKeyPressed(keyCode) {
         return this.activeKeys[keyCode] || false;
+    }
+
+    addCameras(){
+        this.gui.add(this.scene, 'viewSelected', this.scene.cameraNamestoIndex).onChange(this.scene.onChangeCamera.bind(this.scene)).name('Views');
     }
 }

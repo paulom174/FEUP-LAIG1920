@@ -21,26 +21,23 @@ class XMLscene extends CGFscene {
     init(application) {
         super.init(application);
 
-        this.sceneInited = false;
-
-        this.initCameras();
-
-        this.enableTextures(true);
-
-        this.gl.clearDepth(100.0);
-        this.gl.enable(this.gl.DEPTH_TEST);
-        this.gl.enable(this.gl.CULL_FACE);
-        this.gl.depthFunc(this.gl.LEQUAL);
-
-        this.axis = new CGFaxis(this);
-        this.setUpdatePeriod(100);
     }
 
     /**
      * Initializes the scene cameras.
      */
     initCameras() {
-        this.camera = new CGFcamera(45*DEGREE_TO_RAD, 5, 1000, vec3.fromValues(30, 30, 30), vec3.fromValues(0, 0, 0));
+        this.viewSelected =0;
+        this.cameraNamestoIndex = {};
+
+        for(var i=0; i < this.graph.views.length; i++){
+            this.cameraNamestoIndex[this.graph.views[i][0]] = i;
+        }
+
+        this.interface.addCameras();
+
+        this.onChangeCamera();
+        
     }
     /**
      * Initializes the scene lights with the values read from the XML file.
@@ -87,6 +84,12 @@ class XMLscene extends CGFscene {
         }
     }
 
+    onChangeCamera() {
+        this.camera = this.graph.views[this.viewSelected][1];
+
+        this.interface.setActiveCamera(this.camera);
+    }
+
     setDefaultAppearance() {
         this.setAmbient(0.2, 0.4, 0.8, 1.0);
         this.setDiffuse(0.2, 0.4, 0.8, 1.0);
@@ -97,6 +100,17 @@ class XMLscene extends CGFscene {
      * As loading is asynchronous, this may be called already after the application has started the run loop
      */
     onGraphLoaded() {
+        this.initCameras();
+
+        this.enableTextures(true);
+
+        this.gl.clearDepth(100.0);
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.enable(this.gl.CULL_FACE);
+        this.gl.depthFunc(this.gl.LEQUAL);
+
+        this.setUpdatePeriod(100);
+
         this.axis = new CGFaxis(this, this.graph.referenceLength);
 
         this.gl.clearColor(this.graph.background[0], this.graph.background[1], this.graph.background[2], this.graph.background[3]);
@@ -126,7 +140,6 @@ class XMLscene extends CGFscene {
         this.applyViewMatrix();
 
         this.pushMatrix();
-        this.axis.display();
 
         for (var i = 0; i < this.lights.length; i++) {
             this.lights[i].setVisible(true);

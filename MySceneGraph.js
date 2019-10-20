@@ -27,6 +27,9 @@ class MySceneGraph {
 
         this.nodes = [];
 
+        this.key =0;
+
+
         this.idRoot = null;                    // The id of the root element.
 
         this.axisCoords = [];
@@ -227,134 +230,143 @@ class MySceneGraph {
      * @param {view block element} viewsNode
      */
     parseView(viewsNode) {
-        /*this.onXMLMinorError("To do: Parse views and create cameras.");
-        var children = lightsNode.children;
-
-        this.lights = [];
+        this.onXMLMinorError("To do: Parse views and create cameras.");
+        var children = viewsNode.children;
+        this.views = [];
         var numLights = 0;
 
         var grandChildren = [];
         var nodeNames = [];
 
-        // Any number of lights.
+        //Any number of cameras.
         for (var i = 0; i < children.length; i++) {
 
-            // Storing light information
-            var global = [];
-            var attributeNames = [];
-            var attributeTypes = [];
-
-            //Check type of light
-            if (children[i].nodeName != "omni" && children[i].nodeName != "spot") {
+            //Check type of camera
+            if (children[i].nodeName != "perspective" && children[i].nodeName != "ortho") {
                 this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
                 continue;
             }
-            else {
-                attributeNames.push(...["location", "ambient", "diffuse", "specular"]);
-                attributeTypes.push(...["position", "color", "color", "color"]);
-            }
 
-            // Get id of the current light.
-            var lightId = this.reader.getString(children[i], 'id');
-            if (lightId == null)
-                return "no ID defined for light";
+            if(children[i].nodeName == "perspective"){
 
-            // Checks for repeated IDs.
-            if (this.lights[lightId] != null)
-                return "ID must be unique for each light (conflict: ID = " + lightId + ")";
+                //Get id of the current camera.
+                var cameraId = this.reader.getString(children[i], 'id');
+                if (cameraId == null)
+                    return "no ID defined for camera";
+    
+                //Checks for repeated IDs.
+                if (this.views[cameraId] != null)
+                    return "ID must be unique for each camera (conflict: ID = " + lightId + ")";
+    
 
-            // Light enable/disable
-            var enableLight = true;
-            var aux = this.reader.getBoolean(children[i], 'enabled');
-            if (!(aux != null && !isNaN(aux) && (aux == true || aux == false)))
-                this.onXMLMinorError("unable to parse value component of the 'enable light' field for ID = " + lightId + "; assuming 'value = 1'");
+                var near = this.reader.getFloat(children[i], 'near');
+                if (near == null)
+                    return "no near defined for camera";
 
-            enableLight = aux || 1;
+                var far = this.reader.getFloat(children[i], 'far');
+                if (far == null)
+                    return "no far defined for camera";
 
-            //Add enabled boolean and type name to light info
-            global.push(enableLight);
-            global.push(children[i].nodeName);
-
-            grandChildren = children[i].children;
-            // Specifications for the current light.
-
-            nodeNames = [];
-            for (var j = 0; j < grandChildren.length; j++) {
-                nodeNames.push(grandChildren[j].nodeName);
-            }
-
-            for (var j = 0; j < attributeNames.length; j++) {
-                var attributeIndex = nodeNames.indexOf(attributeNames[j]);
-
-                if (attributeIndex != -1) {
-                    if (attributeTypes[j] == "position")
-                        var aux = this.parseCoordinates4D(grandChildren[attributeIndex], "light position for ID" + lightId);
-                    else
-                        var aux = this.parseColor(grandChildren[attributeIndex], attributeNames[j] + " illumination for ID" + lightId);
-
-                    if (!Array.isArray(aux))
-                        return aux;
-
-                    global.push(aux);
-                }
-                else
-                    return "light " + attributeNames[i] + " undefined for ID = " + lightId;
-            }
-
-            var attributeIndex = nodeNames.indexOf("attenuation");
-
-            var aux = this.reader.getFloat(grandChildren[attributeIndex], 'constant');
-
-            global.push(aux);
-
-            var aux = this.reader.getFloat(grandChildren[attributeIndex], 'linear');
-
-            global.push(aux);
-
-            var aux = this.reader.getFloat(grandChildren[attributeIndex], 'quadratic');
-
-            global.push(aux);
-
-
-
-            // Gets the additional attributes of the spot light
-            if (children[i].nodeName == "spot") {
                 var angle = this.reader.getFloat(children[i], 'angle');
-                if (!(angle != null && !isNaN(angle)))
-                    return "unable to parse angle of the light for ID = " + lightId;
+                if (angle == null)
+                    return "no angle defined for camera";
 
-                var exponent = this.reader.getFloat(children[i], 'exponent');
-                if (!(exponent != null && !isNaN(exponent)))
-                    return "unable to parse exponent of the light for ID = " + lightId;
 
-                var targetIndex = nodeNames.indexOf("target");
 
-                // Retrieves the light target.
-                var targetLight = [];
-                if (targetIndex != -1) {
-                    var aux = this.parseCoordinates3D(grandChildren[targetIndex], "target light for ID " + lightId);
-                    if (!Array.isArray(aux))
-                        return aux;
+                grandChildren = children[i].children;
+                //Specifications for the current camera.
+                for (var j = 0; j < grandChildren.length; j++){
 
-                    targetLight = aux;
+                    if (grandChildren[j].nodeName != "from" && grandChildren[j].nodeName != "to") {
+                        this.onXMLMinorError("unknown tag <" + grandChildren[j].nodeName + ">");
+                        continue;
+                    }
+                    if(grandChildren[j].nodeName == "from"){
+                        var x1 = this.reader.getFloat(grandChildren[j], 'x');
+                        var y1 = this.reader.getFloat(grandChildren[j], 'y');
+                        var z1 = this.reader.getFloat(grandChildren[j], 'z');
+                    }
+                    else{
+                        var x2 = this.reader.getFloat(grandChildren[j], 'x');
+                        var y2 = this.reader.getFloat(grandChildren[j], 'y');
+                        var z2 = this.reader.getFloat(grandChildren[j], 'z');
+                    }
                 }
-                else
-                    return "light target undefined for ID = " + lightId;
 
-                global.push(...[angle, exponent, targetLight])
+            
+            var camera = new CGFcamera(angle * DEGREE_TO_RAD, near, far, [x1,y1,z1], [x2,y2,z2]);
+            this.views.push([cameraId, camera]);
+            }
+            else{
+                //Get id of the current camera.
+                var cameraId = this.reader.getString(children[i], 'id');
+                if (cameraId == null)
+                    return "no ID defined for camera";
+    
+                //Checks for repeated IDs.
+                if (this.views[cameraId] != null)
+                    return "ID must be unique for each camera (conflict: ID = " + lightId + ")";
+    
+
+                var near = this.reader.getFloat(children[i], 'near');
+                if (near == null)
+                    return "no near defined for camera";
+
+                var far = this.reader.getFloat(children[i], 'far');
+                if (far == null)
+                    return "no far defined for camera";
+
+                var left = this.reader.getFloat(children[i], 'left');
+                if (left == null)
+                    return "no left defined for camera";
+
+                var right = this.reader.getFloat(children[i], 'right');
+                    if (right == null)
+                        return "no right defined for camera";
+
+                var top = this.reader.getFloat(children[i], 'top');
+                    if (top == null)
+                        return "no top defined for camera";   
+        
+                var bottom = this.reader.getFloat(children[i], 'bottom');
+                    if (bottom == null)
+                        return "no bottom defined for camera";
+                
+                grandChildren = children[i].children;
+
+                //Specifications for the current camera.
+                for(var h=0; h < grandChildren.length; h++){
+
+                    if (grandChildren[h].nodeName != "from" && grandChildren[h].nodeName != "to" && grandChildren[h].nodeName != "up") {
+                        this.onXMLMinorError("unknown tag <" + grandChildren[j].nodeName + ">");
+                        continue;
+                    }
+                    if(grandChildren[h].nodeName == "from"){
+                        var x1 = this.reader.getFloat(grandChildren[h], 'x');
+                        var y1 = this.reader.getFloat(grandChildren[h], 'y');
+                        var z1 = this.reader.getFloat(grandChildren[h], 'z');
+                    }
+                    else if(grandChildren[h].nodeName == "to"){
+                        var x2 = this.reader.getFloat(grandChildren[h], 'x');
+                        var y2 = this.reader.getFloat(grandChildren[h], 'y');
+                        var z2 = this.reader.getFloat(grandChildren[h], 'z');
+                    }
+                    else{
+                        var x3 = this.reader.getFloat(grandChildren[h], 'x');
+                        var y3 = this.reader.getFloat(grandChildren[h], 'y');
+                        var z3 = this.reader.getFloat(grandChildren[h], 'z');
+                    }
+                }
+
+            var camera = new CGFcameraOrtho(left, right, bottom, top, near, far, [x1,y1,z1], [x2,y2,z2], [x3,y3,z3]);
+            this.views.push([cameraId ,camera]);
             }
 
-            this.lights[lightId] = global;
-            numLights++;
         }
 
-        if (numLights == 0)
-            return "at least one light must be defined";
-        else if (numLights > 8)
-            this.onXMLMinorError("too many lights defined; WebGL imposes a limit of 8 lights");
-
-        this.log("Parsed lights");
-        return null;*/
+        console.log(this.views[0]);
+        console.log(this.views[1]);
+        return null;
     }
 
     /**
@@ -526,6 +538,11 @@ class MySceneGraph {
 
         this.log("Parsed lights");
         return null;
+    }
+
+    changeViews(){
+        var camera = this.views[this.selectedView];
+        this.interface.setActiveCamera(this.camera);
     }
 
     /**
@@ -1313,13 +1330,15 @@ class MySceneGraph {
 
         var mat;
         var text;
+        var i = this.key % component.material.length;
 
 
-        if(component.material[0] == "inherit"){
+        if(component.material[i] == "inherit"){
             mat = parentmat;
         }
         else{
-            mat = this.materials[component.material[0]];
+
+            mat = this.materials[component.material[i]];
         }
 
         if(component.texture[0] == "inherit"){
@@ -1384,6 +1403,7 @@ class MySceneGraph {
 
 
         this.displayComponent(this.components[this.idRoot], null, null);
+
 
     }
 }

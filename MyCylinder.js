@@ -19,6 +19,7 @@
         this.indices = [];
         this.normals=[];
         this.texCoords=[];
+        this.auxtexCoords=[];
 
 
         //Variables needed for the FOR loops
@@ -60,7 +61,7 @@
                     this.normals.push(Math.cos(delta_radius*j), Math.sin(delta_radius*j), 0);
                 }
                 //TextCoords
-                this.texCoords.push(j / this.slices, i/this.stacks);
+                this.auxtexCoords.push(j / this.slices, i/this.stacks);
             }
             new_radius = this.baseRadius + delta_rad * (i +1);
         }
@@ -80,12 +81,18 @@
             }
         }
 
+        
+
     
         
         this.primitiveType = this.scene.gl.TRIANGLES;
 		this.initGLBuffers();
     }
-     updateTexCoords(s, t) {
-         this.updateTexCoordsGLBuffers();
-     }
+    updateTexCoords(s, t) {
+        for(var i=0; i < this.auxtexCoords.length; i+=2){
+            this.texCoords[i] = this.auxtexCoords[i] / s;
+            this.texCoords[i+1] = this.auxtexCoords[i+1] / t;
+        }
+        this.updateTexCoordsGLBuffers();
+    }
  }
