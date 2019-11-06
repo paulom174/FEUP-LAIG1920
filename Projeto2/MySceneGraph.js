@@ -848,8 +848,8 @@ class MySceneGraph {
             if (grandChildren.length != 1 ||
                 (grandChildren[0].nodeName != 'rectangle' && grandChildren[0].nodeName != 'triangle' &&
                     grandChildren[0].nodeName != 'cylinder' && grandChildren[0].nodeName != 'sphere' &&
-                    grandChildren[0].nodeName != 'torus')) {
-                return "There must be exactly 1 primitive type (rectangle, triangle, cylinder, sphere or torus)"
+                    grandChildren[0].nodeName != 'torus' && grandChildren[0].nodeName != 'plane' && grandChildren[0].nodeName != 'patch')) {
+                return "There must be exactly 1 primitive type (rectangle, triangle, cylinder, sphere, plane or torus)"
             }
 
             // Specifications for the current primitive.
@@ -1007,6 +1007,81 @@ class MySceneGraph {
 
                 this.primitives[primitiveId] = torus;
             }
+
+            else if (primitiveType == 'plane') {
+                // npartsU
+                var npartsU = this.reader.getFloat(grandChildren[0], 'npartsU');
+                if (!(npartsU != null && !isNaN(npartsU)))
+                    return "unable to parse npartsU of the primitive coordinates for ID = " + primitiveId;
+
+                // npartsV
+                var npartsV = this.reader.getFloat(grandChildren[0], 'npartsV');
+                if (!(npartsV != null && !isNaN(npartsV)))
+                    return "unable to parse npartsV of the primitive coordinates for ID = " + primitiveId;
+
+                var plane = new MyPlane(this.scene, primitiveId, npartsU, npartsV);
+
+                this.primitives[primitiveId] = plane;
+            }
+
+            else if (primitiveType == 'patch') {
+                // npointsU
+                var npointsU = this.reader.getFloat(grandChildren[0], 'npointsU');
+                if (!(npointsU != null && !isNaN(npointsU)))
+                    return "unable to parse npointsU of the primitive coordinates for ID = " + primitiveId;
+
+                // npointsV
+                var npointsV = this.reader.getFloat(grandChildren[0], 'npointsV');
+                if (!(npointsV != null && !isNaN(npointsV)))
+                    return "unable to parse npointsV of the primitive coordinates for ID = " + primitiveId;
+
+                // npartsU
+                var npartsU = this.reader.getFloat(grandChildren[0], 'npartsU');
+                if (!(npartsU != null && !isNaN(npartsU)))
+                    return "unable to parse npartsU of the primitive coordinates for ID = " + primitiveId;
+
+                // npartsV
+                var npartsV = this.reader.getFloat(grandChildren[0], 'npartsV');
+                if (!(npartsV != null && !isNaN(npartsV)))
+                    return "unable to parse npartsV of the primitive coordinates for ID = " + primitiveId;
+
+                var npoints = npointsU * npointsV;
+                var U = [];
+                var V = [];
+                var cpoints =[];
+
+                for(var i=0; i < npoints; i++){
+                    var pointX = this.reader.getFloat(grandChildren[0].children[i], 'xx');
+                    if (!(pointX != null && !isNaN(pointX)))
+                        return "unable to parse pointX of the primitive coordinates for ID = " + primitiveId;
+
+                    var pointY = this.reader.getFloat(grandChildren[0].children[i], 'yy');
+                    if (!(pointY != null && !isNaN(pointY)))
+                        return "unable to parse pointY of the primitive coordinates for ID = " + primitiveId;
+
+                    var pointZ = this.reader.getFloat(grandChildren[0].children[i], 'zz');
+                    if (!(pointZ != null && !isNaN(pointZ)))
+                        return "unable to parse pointZ of the primitive coordinates for ID = " + primitiveId;
+
+                    cpoints.push([pointX,pointY,pointZ, 1]);
+                }
+
+                for(var i=0;i<cpoints.length;i++)
+                {
+                    V.push(cpoints[i]);
+                    if((i+1)%npointsV == 0)
+                    {
+                        U.push(V);
+                        V = [];
+                    }
+                }
+                cpoints = [];
+                cpoints.push(U);
+                var patch = new MyPatch(this.scene, primitiveId, npointsU, npointsV, npartsU, npartsV, cpoints);
+
+                this.primitives[primitiveId] = patch;
+            }
+
             else {
                 console.warn("To do: Parse other primitives.");
             }
@@ -1401,8 +1476,10 @@ class MySceneGraph {
         //this.primitives['demoTorus'].display();
         //this.primitives['demoTriangle'].display();
 
+        this.primitives['demoPatch'].display();
 
-        this.displayComponent(this.components[this.idRoot], null, null);
+
+        //this.displayComponent(this.components[this.idRoot], null, null);
 
 
     }

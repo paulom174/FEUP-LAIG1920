@@ -1,5 +1,5 @@
 /**
- * MyCylinder
+ * MyCylinder 
  * @constructor
  * @param scene - Reference to MyScene object
  */
