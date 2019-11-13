@@ -13,14 +13,15 @@ class MyPatch extends CGFobject {
     this.cPoints = cPoints;
     this.scene = scene;
 
-    this.makeSurface(this.npointsU, this.npointsV, [[[0,0,0,1], [1,1,1,1]], [[2,2,2,1], [3,3,3,1]]]);
-    
+    //this.makeSurface(this.npointsU,this.npointsV, [[[0,0,0,1], [1,1,1,1]], [[2,2,2,1], [3,3,3,1]]]);
+        this.makeSurface(this.npointsU,this.npointsV,this.cPoints);
     //this.initBuffers();
 }
 
 makeSurface(degree1, degree2, controlvertexes){
-    this.nurbsSurface = new CGFnurbsSurface(degree1, degree2, controlvertexes);
-    this.obj = new CGFnurbsObject(this.scene, this.npartsU, this.npartsV, this.nurbsSurface);
+    console.log(controlvertexes);
+    this.a = new CGFnurbsSurface(degree1, degree2, controlvertexes);
+    this.obj = new CGFnurbsObject(this.scene, this.npartsU, this.npartsV, this.a);
 }
 
 // initBuffers()

@@ -101,6 +101,16 @@
         </transformation>
     </transformations>
 
+    <animations>
+        <animation id="hey" >
+            <keyframe instant="5">
+                <translate x="10" y="10" z="10" />
+                <rotate angle_x="45" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+        </animation>
+    </animations>
+
     <primitives>
         <primitive id="demoRectangle">
             <rectangle x1="-0.5" y1="-1" x2="0.5" y2="1" />
@@ -131,13 +141,16 @@
         </primitive>
 
         <primitive id="demoPatch">
-            <patch npointsU="2" npointsV="2" npartsU="5" npartsV="8" >
+            <patch npointsU="1" npointsV="2" npartsU="5" npartsV="8" >
                 <controlpoint xx="0" yy="0" zz="0" />
-                <controlpoint xx="1" yy="1" zz="1" />
-                <controlpoint xx="2" yy="2" zz="2" />
-                <controlpoint xx="3" yy="3" zz="3" />
+                <controlpoint xx="0" yy="0.5" zz="1" />
+                <controlpoint xx="0" yy="1" zz="0" />
+                <controlpoint xx="1" yy="0" zz="0" />
+                <controlpoint xx="1" yy="0.5" zz="1" />
+                <controlpoint xx="1" yy="1" zz="0" />
+                
             </patch>
-        </primitive>
+        </primitive> 
     </primitives>
 
     <components>

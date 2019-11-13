@@ -8,8 +8,9 @@ var LIGHTS_INDEX = 3;
 var TEXTURES_INDEX = 4;
 var MATERIALS_INDEX = 5;
 var TRANSFORMATIONS_INDEX = 6;
-var PRIMITIVES_INDEX = 7;
-var COMPONENTS_INDEX = 8;
+var ANIMATIONS_INDEX = 7;
+var PRIMITIVES_INDEX = 8;
+var COMPONENTS_INDEX = 9;
 
 /**
  * MySceneGraph class, representing the scene graph.
@@ -173,6 +174,18 @@ class MySceneGraph {
             if ((error = this.parseTransformations(nodes[index])) != null)
                 return error;
         }
+
+        // <animations>
+        if ((index = nodeNames.indexOf("animations")) == -1)
+                return "tag <animations> missing";
+        else {
+            if (index != ANIMATIONS_INDEX)
+                    this.onXMLMinorError("tag <animations> out of order");
+    
+        //Parse animations block
+        if ((error = this.parseAnimations(nodes[index])) != null)
+                    return error;
+            }
 
         // <primitives>
         if ((index = nodeNames.indexOf("primitives")) == -1)
@@ -813,6 +826,86 @@ class MySceneGraph {
         return null;
     }
 
+/**
+     * Parses the <animations> block.
+     * @param {animations block element} animationsNode
+     */
+    parseAnimations(animationsNode) {
+        var children = animationsNode.children;
+
+        this.animations = [];
+        
+        var animation = [];
+        var keyframes =[];
+
+        var grandChildren = [];
+
+
+        // Any number of animations.
+        for (var i = 0; i < children.length; i++) {
+
+            if (children[i].nodeName != "animation") {
+                this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
+                continue;
+            }
+
+            // Get id of the current primitive.
+            var animationId = this.reader.getString(children[i], 'id');
+            if (animationId == null)
+                return "no ID defined for animations";
+
+            // Checks for repeated IDs.
+            if (this.animations[animationId] != null)
+                return "ID must be unique for each animations (conflict: ID = " + animationsId + ")";
+
+            grandChildren = children[i].children;
+            var grandgrandChildren;
+            var transfMatrix = mat4.create();
+            for(var i=0; i < grandChildren.length;i++)
+            {
+                var keyframe = [];
+                var keyframeInstant = this.reader.getFloat(grandChildren[i], 'instant');
+                grandgrandChildren = grandChildren[i].children;
+                for(var j=0; j < grandgrandChildren.length; j++){
+                    switch (grandgrandChildren[j].nodeName) {
+                        case 'translate':
+                            var coordinates = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
+                            if (!Array.isArray(coordinates))
+                                return coordinates;
+    
+                            transfMatrix = mat4.translate(transfMatrix, transfMatrix, coordinates);
+                            break;
+                        case 'scale':
+                            var coordinates = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
+                            if (!Array.isArray(coordinates))
+                                return coordinates;
+    
+                            transfMatrix = mat4.scale(transfMatrix, transfMatrix, coordinates);
+                            break;
+                        case 'rotate':
+                            var angle_x = this.reader.getFloat(grandgrandChildren[j], 'angle_x');
+                            var angle_y = this.reader.getFloat(grandgrandChildren[j], 'angle_y');
+                            var angle_z = this.reader.getFloat(grandgrandChildren[j], 'angle_z');
+
+                            angle_x *=DEGREE_TO_RAD;
+                            angle_y *=DEGREE_TO_RAD;
+                            angle_z *=DEGREE_TO_RAD;
+
+                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle_x, [1,0,0]);
+                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle_y, [0,1,0]);
+                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle_z, [0,0,1]);
+    
+                            break;
+                    }
+                }
+                keyframe.instant = keyframeInstant;
+                keyframe.transfMatrix = transfMatrix;
+                keyframes.push(keyframe);
+            }
+            animation.keyframes = keyframes;
+            this.animations[animationId] = animation;
+        }
+    }
 
     /**
      * Parses the <primitives> block.
@@ -1022,6 +1115,7 @@ class MySceneGraph {
                 var plane = new MyPlane(this.scene, primitiveId, npartsU, npartsV);
 
                 this.primitives[primitiveId] = plane;
+
             }
 
             else if (primitiveType == 'patch') {
@@ -1045,39 +1139,40 @@ class MySceneGraph {
                 if (!(npartsV != null && !isNaN(npartsV)))
                     return "unable to parse npartsV of the primitive coordinates for ID = " + primitiveId;
 
-                var npoints = npointsU * npointsV;
+                var npoints = (npointsU+1) * (npointsV+1);
                 var U = [];
                 var V = [];
                 var cpoints =[];
 
-                for(var i=0; i < npoints; i++){
-                    var pointX = this.reader.getFloat(grandChildren[0].children[i], 'xx');
+                for(var j=0; j < npoints; j++){
+                    var pointX = this.reader.getFloat(grandChildren[0].children[j], 'xx');
                     if (!(pointX != null && !isNaN(pointX)))
                         return "unable to parse pointX of the primitive coordinates for ID = " + primitiveId;
 
-                    var pointY = this.reader.getFloat(grandChildren[0].children[i], 'yy');
+                    var pointY = this.reader.getFloat(grandChildren[0].children[j], 'yy');
                     if (!(pointY != null && !isNaN(pointY)))
                         return "unable to parse pointY of the primitive coordinates for ID = " + primitiveId;
 
-                    var pointZ = this.reader.getFloat(grandChildren[0].children[i], 'zz');
+                    var pointZ = this.reader.getFloat(grandChildren[0].children[j], 'zz');
                     if (!(pointZ != null && !isNaN(pointZ)))
                         return "unable to parse pointZ of the primitive coordinates for ID = " + primitiveId;
 
                     cpoints.push([pointX,pointY,pointZ, 1]);
                 }
 
-                for(var i=0;i<cpoints.length;i++)
+                console.log(cpoints.length); 
+                for(var j=0;j<cpoints.length;j++)
                 {
-                    V.push(cpoints[i]);
-                    if((i+1)%npointsV == 0)
+                    V.push(cpoints[j]);
+                    if((j+1)%(npointsV+1) == 0)
                     {
                         U.push(V);
                         V = [];
                     }
                 }
-                cpoints = [];
-                cpoints.push(U);
-                var patch = new MyPatch(this.scene, primitiveId, npointsU, npointsV, npartsU, npartsV, cpoints);
+                // cpoints = [];
+                // cpoints.push(U);
+                var patch = new MyPatch(this.scene, primitiveId, npointsU, npointsV, npartsU, npartsV, U);
 
                 this.primitives[primitiveId] = patch;
             }
