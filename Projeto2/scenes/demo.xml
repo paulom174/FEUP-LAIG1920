@@ -108,6 +108,11 @@
                 <rotate angle_x="45" angle_y="0" angle_z="0" />
                 <scale x="1" y="1" z="1" />
             </keyframe>
+            <keyframe instant="10">
+                <translate x="20" y="20" z="20" />
+                <rotate angle_x="90" angle_y="0" angle_z="0" />
+                <scale x="2" y="2" z="2" />
+            </keyframe>
         </animation>
     </animations>
 
@@ -464,6 +469,7 @@
             <transformation>
                 <translate x="4.5" y="0.85" z="1" />
             </transformation>
+            <animationref id="hey" />
             <materials>
                 <material id="moreDiffuse" />
             </materials>

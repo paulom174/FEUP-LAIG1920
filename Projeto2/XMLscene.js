@@ -21,6 +21,10 @@ class XMLscene extends CGFscene {
     init(application) {
         super.init(application);
 
+        this.rtt = new CGFtextureRTT(this,this.gl.canvas.width,this.gl.canvas.height);
+        this.screenUI = new CGFshader(this.gl, "shaders/texture1.vert", "shaders/texture1.frag");
+        this.securityCamera = new MySecurityCamera(this,this.rtt);
+
     }
 
     /**
@@ -39,6 +43,12 @@ class XMLscene extends CGFscene {
         this.onChangeCamera();
         
     }
+
+    update(time){
+        var dif = time - this.lastUpdate;
+        this.graph.updateAnimation(dif);
+    }
+
     /**
      * Initializes the scene lights with the values read from the XML file.
      */
@@ -125,7 +135,7 @@ class XMLscene extends CGFscene {
     /**
      * Displays the scene.
      */
-    display() {
+    render() {
         // ---- BEGIN Background, camera and axis setup
 
         // Clear image and depth buffer everytime we update the scene
@@ -146,15 +156,28 @@ class XMLscene extends CGFscene {
             this.lights[i].enable();
         }
 
-        if (this.sceneInited) {
-            // Draw axis
-            this.setDefaultAppearance();
+        
+        // Draw axis
+        this.setDefaultAppearance();
 
-            // Displays the scene (MySceneGraph function).
-            this.graph.displayScene();
-        }
+        // Displays the scene (MySceneGraph function).
+        this.graph.displayScene();
+        
 
         this.popMatrix();
         // ---- END Background, camera and axis setup
+    }
+
+    display()
+    {
+        if (!this.sceneInited)
+            return;
+        this.rtt.attachToFrameBuffer();
+        this.render();
+        this.rtt.detachFromFrameBuffer();
+        this.render();
+        this.gl.disable(this.gl.DEPTH_TEST);
+        this.securityCamera.display();
+        this.gl.enable(this.gl.DEPTH_TEST);
     }
 }

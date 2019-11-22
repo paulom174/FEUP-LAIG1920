@@ -866,44 +866,45 @@ class MySceneGraph {
                 var keyframe = [];
                 var keyframeInstant = this.reader.getFloat(grandChildren[i], 'instant');
                 grandgrandChildren = grandChildren[i].children;
-                for(var j=0; j < grandgrandChildren.length; j++){
-                    switch (grandgrandChildren[j].nodeName) {
-                        case 'translate':
-                            var coordinates = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
-                            if (!Array.isArray(coordinates))
-                                return coordinates;
+                for(var i=0; i < grandChildren.length;i++)
+                {
+                    var keyframe = [];
+                    var keyframeInstant = this.reader.getFloat(grandChildren[i], 'instant');
+                    grandgrandChildren = grandChildren[i].children;
+                    for(var j=0; j < grandgrandChildren.length; j++){
+                        switch (grandgrandChildren[j].nodeName) {
+                            case 'translate':
+                                var translation = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
+                                if (!Array.isArray(translation))
+                                    return translation;
+        
+                                break;
+                            case 'scale':
+                                var scaling = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
+                                if (!Array.isArray(scaling))
+                                    return scaling;
+        
+                                break;
+                            case 'rotate':
+                                var angle_x = this.reader.getFloat(grandgrandChildren[j], 'angle_x');
+                                var angle_y = this.reader.getFloat(grandgrandChildren[j], 'angle_y');
+                                var angle_z = this.reader.getFloat(grandgrandChildren[j], 'angle_z');
     
-                            transfMatrix = mat4.translate(transfMatrix, transfMatrix, coordinates);
-                            break;
-                        case 'scale':
-                            var coordinates = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
-                            if (!Array.isArray(coordinates))
-                                return coordinates;
+                                angle_x *=DEGREE_TO_RAD;
+                                angle_y *=DEGREE_TO_RAD;
+                                angle_z *=DEGREE_TO_RAD;
     
-                            transfMatrix = mat4.scale(transfMatrix, transfMatrix, coordinates);
-                            break;
-                        case 'rotate':
-                            var angle_x = this.reader.getFloat(grandgrandChildren[j], 'angle_x');
-                            var angle_y = this.reader.getFloat(grandgrandChildren[j], 'angle_y');
-                            var angle_z = this.reader.getFloat(grandgrandChildren[j], 'angle_z');
-
-                            angle_x *=DEGREE_TO_RAD;
-                            angle_y *=DEGREE_TO_RAD;
-                            angle_z *=DEGREE_TO_RAD;
-
-                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle_x, [1,0,0]);
-                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle_y, [0,1,0]);
-                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle_z, [0,0,1]);
-    
-                            break;
+                                var rotation = [angle_x, angle_y, angle_z];
+                                break;
+                        }
                     }
+    
+                    var keyframe = new MyKeyFrame(this.scene, keyframeInstant, translation, scaling, rotation);
+                    keyframes.push(keyframe);
                 }
-                keyframe.instant = keyframeInstant;
-                keyframe.transfMatrix = transfMatrix;
-                keyframes.push(keyframe);
+                var animation = new MyAnimation(this.scene, animationId, keyframes);
+                this.animations[animationId] = animation;
             }
-            animation.keyframes = keyframes;
-            this.animations[animationId] = animation;
         }
     }
 
@@ -1229,6 +1230,7 @@ class MySceneGraph {
             }
 
             var transformationIndex = nodeNames.indexOf("transformation");
+            var animationIndex = nodeNames.indexOf("animationref");
             var materialsIndex = nodeNames.indexOf("materials");
             var textureIndex = nodeNames.indexOf("texture");
             var childrenIndex = nodeNames.indexOf("children");
@@ -1251,6 +1253,30 @@ class MySceneGraph {
                 }
                 else {
                     this.transform(grandChildren[transformationIndex], componentID);
+                }
+            }
+
+            // Animation
+            var animations = [];
+            var no;
+            var dif = materialsIndex - animationIndex;
+
+            if(animationIndex != -1){
+
+                for(var b =0; b < dif; b++){
+                    no = grandChildren[animationIndex + b];
+                    if (no.nodeName != "animationref") {
+                    this.onXMLMinorError("unknown tag <" + no.nodeName + ">");
+                    continue;
+                    }
+                    var animationId = this.reader.getString(no, "id");
+                    animations.push(animationId);
+                
+                }
+                component.animation = animations;
+
+                if(component.animation != null){
+                    this.animations[component.animation[0]].startAnimation();
                 }
             }
 
@@ -1303,67 +1329,74 @@ class MySceneGraph {
         }
     }
 
-    
+    updateAnimation(dif){
+        // for(var i =0; i < this.animations.length; i++){
+        //     this.animations[ani]
+        // }
+        this.animations.forEach(animation => {
+            animation.update(dif);
+        });
+    }
 
 
-        transform(tranformationsNode, componentID){
+    transform(tranformationsNode, componentID){
 
-            var finalMatrix = mat4.create();
-            var transfNode;
+        var finalMatrix = mat4.create();
+        var transfNode;
 
-            for (var i = 0; i < tranformationsNode.children.length; i++){
-                transfNode = tranformationsNode.children[i];
-                var transfMatrix = mat4.create();
-    
-    
-                    switch (transfNode.nodeName) {
-                        case 'translate':
-                            var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
-                            if (!Array.isArray(coordinates))
-                                return coordinates;
-    
-                            transfMatrix = mat4.translate(transfMatrix, transfMatrix, coordinates);
-                            break;
-                        case 'scale':
-                            var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
-                            if (!Array.isArray(coordinates))
-                                return coordinates;
-    
-                            transfMatrix = mat4.scale(transfMatrix, transfMatrix, coordinates);
-                            break;
-                        case 'rotate':
-                            /*var coordinates = this.parseRotation(transfNode, "translate transformation for ID " + transformationID);
-                            var axis = coordinates[0];
-                            var angle = coordinates[1];
-                            */
-                            var axis = this.reader.getString(transfNode, 'axis');
-                            var angle = this.reader.getString(transfNode, 'angle');
-                            angle *= DEGREE_TO_RAD;
-    
-                            if (axis == 'x')
-                                //var vec = new vec3(1, 0, 0);
-                                transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [1, 0, 0]);
-    
-                            if (axis == 'y')
-                                //var vec = new vec3(0, 1, 0);
-                                transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 1, 0]);
-    
-                            if (axis == 'z')
-                                //var vec = new vec3(0, 0, 1);
-                                transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 0, 1]);
-    
-    
-                            //transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, vec);
-    
-    
-                            break;
-                    }
-                mat4.multiply(finalMatrix, finalMatrix, transfMatrix);
-            }
+        for (var i = 0; i < tranformationsNode.children.length; i++){
+            transfNode = tranformationsNode.children[i];
+            var transfMatrix = mat4.create();
 
-            
-            this.transformations[componentID] = finalMatrix;
+
+                switch (transfNode.nodeName) {
+                    case 'translate':
+                        var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
+                        if (!Array.isArray(coordinates))
+                            return coordinates;
+
+                        transfMatrix = mat4.translate(transfMatrix, transfMatrix, coordinates);
+                        break;
+                    case 'scale':
+                        var coordinates = this.parseCoordinates3D(transfNode, "translate transformation for ID " + transfNode.nodeName);
+                        if (!Array.isArray(coordinates))
+                            return coordinates;
+
+                        transfMatrix = mat4.scale(transfMatrix, transfMatrix, coordinates);
+                        break;
+                    case 'rotate':
+                        /*var coordinates = this.parseRotation(transfNode, "translate transformation for ID " + transformationID);
+                        var axis = coordinates[0];
+                        var angle = coordinates[1];
+                        */
+                        var axis = this.reader.getString(transfNode, 'axis');
+                        var angle = this.reader.getString(transfNode, 'angle');
+                        angle *= DEGREE_TO_RAD;
+
+                        if (axis == 'x')
+                            //var vec = new vec3(1, 0, 0);
+                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [1, 0, 0]);
+
+                        if (axis == 'y')
+                            //var vec = new vec3(0, 1, 0);
+                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 1, 0]);
+
+                        if (axis == 'z')
+                            //var vec = new vec3(0, 0, 1);
+                            transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, [0, 0, 1]);
+
+
+                        //transfMatrix = mat4.rotate(transfMatrix, transfMatrix, angle, vec);
+
+
+                        break;
+                }
+            mat4.multiply(finalMatrix, finalMatrix, transfMatrix);
         }
+
+        
+        this.transformations[componentID] = finalMatrix;
+    }
     
 
 
@@ -1529,6 +1562,9 @@ class MySceneGraph {
                 this.scene.pushMatrix();
                 var transID = this.transformations[component.id];
                 this.scene.multMatrix(transID);
+                // if(component.animation != null){
+                //     this.animations[component.animation[0]].startAnimation();
+                // }
                 var primitiveID = component.primitive[i];
 
                 mat.setTexture(text);
@@ -1571,11 +1607,9 @@ class MySceneGraph {
         //this.primitives['demoTorus'].display();
         //this.primitives['demoTriangle'].display();
 
-        this.primitives['demoPatch'].display();
+        //this.primitives['demoPatch'].display();
 
-
-        //this.displayComponent(this.components[this.idRoot], null, null);
-
+        this.displayComponent(this.components[this.idRoot], null, null);
 
     }
 }
