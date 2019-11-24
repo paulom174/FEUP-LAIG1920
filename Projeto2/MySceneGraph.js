@@ -863,53 +863,51 @@ class MySceneGraph {
 
             grandChildren = children[i].children;
             var grandgrandChildren;
-            var transfMatrix = mat4.create();
+            var initial = new MyKeyFrame(this.scene, 0, [0,0,0], [1,1,1], [0,0,0]);
+            keyframes.push(initial);
             for(var i=0; i < grandChildren.length;i++)
             {
                 var keyframe = [];
                 var keyframeInstant = this.reader.getFloat(grandChildren[i], 'instant');
                 grandgrandChildren = grandChildren[i].children;
-                for(var i=0; i < grandChildren.length;i++)
-                {
-                    var keyframe = [];
-                    var keyframeInstant = this.reader.getFloat(grandChildren[i], 'instant');
-                    grandgrandChildren = grandChildren[i].children;
-                    for(var j=0; j < grandgrandChildren.length; j++){
-                        switch (grandgrandChildren[j].nodeName) {
-                            case 'translate':
-                                var translation = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
-                                if (!Array.isArray(translation))
-                                    return translation;
-        
-                                break;
-                            case 'scale':
-                                var scaling = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
-                                if (!Array.isArray(scaling))
-                                    return scaling;
-        
-                                break;
-                            case 'rotate':
-                                var angle_x = this.reader.getFloat(grandgrandChildren[j], 'angle_x');
-                                var angle_y = this.reader.getFloat(grandgrandChildren[j], 'angle_y');
-                                var angle_z = this.reader.getFloat(grandgrandChildren[j], 'angle_z');
+
+                for(var j=0; j < grandgrandChildren.length; j++){
+                    switch (grandgrandChildren[j].nodeName) {
+                        case 'translate':
+                            var translation = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
+                            if (!Array.isArray(translation))
+                                return translation;
     
-                                angle_x *=DEGREE_TO_RAD;
-                                angle_y *=DEGREE_TO_RAD;
-                                angle_z *=DEGREE_TO_RAD;
+                            break;
+                        case 'scale':
+                            var scaling = this.parseCoordinates3D(grandgrandChildren[j], "translate transformation for ID " + animationId);
+                            if (!Array.isArray(scaling))
+                                return scaling;
     
-                                var rotation = [angle_x, angle_y, angle_z];
-                                break;
-                        }
+                            break;
+                        case 'rotate':
+                            var angle_x = this.reader.getFloat(grandgrandChildren[j], 'angle_x');
+                            var angle_y = this.reader.getFloat(grandgrandChildren[j], 'angle_y');
+                            var angle_z = this.reader.getFloat(grandgrandChildren[j], 'angle_z');
+
+                            angle_x *=DEGREE_TO_RAD;
+                            angle_y *=DEGREE_TO_RAD;
+                            angle_z *=DEGREE_TO_RAD;
+
+                            var rotation = [angle_x, angle_y, angle_z];
+                            break;
                     }
-    
-                    var keyframe = new MyKeyFrame(this.scene, keyframeInstant, translation, scaling, rotation);
-                    keyframes.push(keyframe);
                 }
-                var animation = new MyAnimation(this.scene, animationId, keyframes);
-                this.animationsID.push(animationId);
-                this.animations[animationId] = animation;
+
+                var keyframe = new MyKeyFrame(this.scene, keyframeInstant, translation, scaling, rotation);
+                keyframes.push(keyframe);
+            
             }
+            var animation = new MyAnimation(this.scene, animationId, keyframes);
+            this.animationsID.push(animationId);
+            this.animations[animationId] = animation;
         }
+        console.log(this.animationsID);
     }
 
     /**
@@ -1277,9 +1275,9 @@ class MySceneGraph {
                 animations.push(animationId);
                 component.animation = animations;
 
-                // if(component.animation != null){
-                //     this.animations[component.animation].startAnimation();
-                // }
+                if(component.animation != null){
+                    this.animations[component.animation].startAnimation();
+                }
             }
 
             // Materials
@@ -1333,9 +1331,13 @@ class MySceneGraph {
 
     updateAnimation(dif){
 
-        for(var i=0; i<this.animationsID.length; i++){
-            this.animations[this.animationsID[i]].update(dif);
-        }
+        this.animationsID.forEach(element => {
+
+            this.animations[element].update(dif);
+        });
+        // for(var i=0; i < this.animationsID.length; i++){
+        //     this.animations[this.animationsID[i]].update(dif);
+        // }
     }
 
 

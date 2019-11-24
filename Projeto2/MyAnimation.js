@@ -17,19 +17,23 @@ class MyAnimation extends CGFobject {
         this.nextKey = this.keyframes[1];
         this.keyON = this.lastKey;
 
-        this.totalTime = this.keyframes[this.keyframes.length-1].instant - this.keyframes[0].instant;
+        this.totalTime = this.keyframes[1].instant - this.keyframes[0].instant;
         this.timePassed = 0;
     }
 
     switchKey(){
 
-        if(this.counter >= this.keyframes.length){
+        if(this.counter == (this.keyframes.length-2)){
             this.anime= false;
             return;
         }
 
+
         this.lastKey = this.keyframes[++this.counter];
         this.nextKey = this.keyframes[(this.counter+1)];
+        this.timePassed =0;
+        this.totalTime = this.keyframes[(this.counter + 1)].instant - this.keyframes[this.counter].instant;
+
     }
 
     startAnimation(){
@@ -45,10 +49,15 @@ class MyAnimation extends CGFobject {
 
         this.timePassed +=time;
         if(this.timePassed > this.totalTime){
-            this.anime = false;
+            this.switchKey();
+            if (this.anime == false) {
+                return;
+            }
         }
 
         this.updateKeyframe(this.timePassed/this.totalTime);
+
+        
 
     }
 
@@ -56,12 +65,11 @@ class MyAnimation extends CGFobject {
 
         this.keyON = this.keyON.calcKeyframe(this.lastKey, this.nextKey, factor);
 
+
     }
 
     apply(){
 
-        
-        
         this.scene.translate(this.keyON.translation[0], this.keyON.translation[1], this.keyON.translation[2]);
         this.scene.scale(this.keyON.scaling[0], this.keyON.scaling[1], this.keyON.scaling[2]);
         this.scene.rotate(this.keyON.rotation[0], 1,0,0);

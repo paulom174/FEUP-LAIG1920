@@ -25,6 +25,8 @@ class XMLscene extends CGFscene {
         this.screenUI = new CGFshader(this.gl, "shaders/texture1.vert", "shaders/texture1.frag");
         this.securityCamera = new MySecurityCamera(this,this.rtt);
 
+        this.setUpdatePeriod(1000/60);
+
     }
 
     /**
@@ -45,8 +47,12 @@ class XMLscene extends CGFscene {
     }
 
     update(time){
+        this.time = time;
         var dif = time - this.lastUpdate;
-        this.graph.updateAnimation(dif);
+        if(!this.sceneInited)
+            return;
+        
+        this.graph.updateAnimation(dif/1000);
     }
 
     /**
@@ -173,8 +179,10 @@ class XMLscene extends CGFscene {
         if (!this.sceneInited)
             return;
         this.rtt.attachToFrameBuffer();
+        this.camera = this.graph.views[1][1];
         this.render();
         this.rtt.detachFromFrameBuffer();
+        this.camera = this.graph.views[this.viewSelected][1];
         this.render();
         this.gl.disable(this.gl.DEPTH_TEST);
         this.securityCamera.display();
