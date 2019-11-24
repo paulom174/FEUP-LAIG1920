@@ -75,6 +75,7 @@
         <texture id="orangeTexture" file="scenes/images/orange.jpg" />
         <texture id="appleTexture" file="scenes/images/apple.jpg" />
         <texture id="greenSofaTexture" file="scenes/images/greensofa.jpg" />
+        <texture id="slime" file="scenes/images/slime.jpg" />
     </textures>
 
     <materials>
@@ -102,7 +103,7 @@
     </transformations>
 
     <animations>
-        <animation id="hey" >
+        <!-- <animation id="teste" >
             <keyframe instant="5">
                 <translate x="0" y="0" z="0" />
                 <rotate angle_x="90" angle_y="0" angle_z="0" />
@@ -120,6 +121,83 @@
             </keyframe>
             <keyframe instant="20">
                 <translate x="0" y="0" z="0" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+        </animation> -->
+        <animation id="jump">
+            <keyframe instant="5">
+                <translate x="0" y="0" z="0" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="5.25">
+                <translate x="-2" y="2" z="0" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="5.5">
+                <translate x="-3.5" y="0" z="0" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="5.75">
+                <translate x="-5.5" y="2" z="0" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="6">
+                <translate x="-7" y="0" z="0" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="6.25">
+                <translate x="-7" y="2" z="-2" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="6.5">
+                <translate x="-7" y="0" z="-3.5" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="6.75">
+                <translate x="-7" y="2" z="-5.5" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="6.5">
+                <translate x="-7" y="0" z="-7" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="7">
+                <translate x="-7" y="2" z="-8" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="7.25">
+                <translate x="-7" y="0" z="-9" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="7.5">
+                <translate x="-9" y="2" z="-9" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="7.75">
+                <translate x="-11.5" y="0" z="-9" />
+                <rotate angle_x="0" angle_y="0" angle_z="0" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="8">
+                <translate x="-11.5" y="3" z="-7" />
+                <rotate angle_x="0" angle_y="0" angle_z="90" />
+                <scale x="1" y="1" z="1" />
+            </keyframe>
+            <keyframe instant="8.25">
+                <translate x="-11.5" y="2" z="-5.5" />
                 <rotate angle_x="0" angle_y="0" angle_z="0" />
                 <scale x="1" y="1" z="1" />
             </keyframe>
@@ -191,7 +269,7 @@
                 <componentref id="Basket" />
                 <componentref id="Fruit" />
                 <componentref id="Sofa" />
-
+                <componentref id="Slime" />
  
             </children>
         </component>
@@ -479,7 +557,7 @@
             <transformation>
                 <translate x="4.5" y="0.85" z="1" />
             </transformation>
-            <animationref id="hey" />
+            <!-- <animationref id="teste" /> -->
             <materials>
                 <material id="moreDiffuse" />
             </materials>
@@ -612,7 +690,8 @@
         </component>
 
         <component id="TVscreen">
-            <transformation>    
+            <transformation> 
+                <!-- <rotate axis="z" angle="180" />  -->
                 <translate x="0.75" y="3.4" z="1" />
                 <scale x="3.5" y="1.5" z="1" />
             </transformation>
@@ -2408,6 +2487,20 @@
             <texture id="inherit" length_s="1" length_t="1"/>
             <children>
                 <primitiveref id="demoTorus" />
+            </children>
+        </component>
+
+        <component id="Slime">
+            <transformation>
+                <translate x="17" y="0" z="14" />
+            </transformation>
+            <animationref id="jump" />
+            <materials>
+                <material id="moreDiffuse" />
+            </materials>
+            <texture id="slime" length_s="1" length_t="2"/>
+            <children>
+                <componentref id="Cube" />
             </children>
         </component>
 

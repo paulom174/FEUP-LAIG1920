@@ -17,7 +17,7 @@ class MyAnimation extends CGFobject {
         this.nextKey = this.keyframes[1];
         this.keyON = this.lastKey;
 
-        this.totalTime = this.keyframes[1].instant - this.keyframes[0].instant;
+        this.frameTime = this.keyframes[1].instant - this.keyframes[0].instant;
         this.timePassed = 0;
     }
 
@@ -25,6 +25,7 @@ class MyAnimation extends CGFobject {
 
         if(this.counter == (this.keyframes.length-2)){
             this.anime= false;
+            this.keyON = this.keyframes[this.keyframes.length-1];
             return;
         }
 
@@ -32,7 +33,8 @@ class MyAnimation extends CGFobject {
         this.lastKey = this.keyframes[++this.counter];
         this.nextKey = this.keyframes[(this.counter+1)];
         this.timePassed =0;
-        this.totalTime = this.keyframes[(this.counter + 1)].instant - this.keyframes[this.counter].instant;
+        this.frameTime = this.keyframes[(this.counter + 1)].instant - this.keyframes[this.counter].instant;
+
 
     }
 
@@ -47,15 +49,16 @@ class MyAnimation extends CGFobject {
             return;
         }
 
+
         this.timePassed +=time;
-        if(this.timePassed > this.totalTime){
+        if(this.timePassed > this.frameTime){
             this.switchKey();
             if (this.anime == false) {
                 return;
             }
         }
+        this.updateKeyframe(this.timePassed/this.frameTime);
 
-        this.updateKeyframe(this.timePassed/this.totalTime);
 
         
 

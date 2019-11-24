@@ -907,7 +907,6 @@ class MySceneGraph {
             this.animationsID.push(animationId);
             this.animations[animationId] = animation;
         }
-        console.log(this.animationsID);
     }
 
     /**
@@ -1264,7 +1263,6 @@ class MySceneGraph {
 
             if(animationIndex != -1){
 
-                
                 no = grandChildren[animationIndex];
                 if (no.nodeName != "animationref") {
                 this.onXMLMinorError("unknown tag <" + no.nodeName + ">");
