@@ -165,6 +165,7 @@ class XMLscene extends CGFscene {
         
         // Draw axis
         this.setDefaultAppearance();
+        this.axis.display();
 
         // Displays the scene (MySceneGraph function).
         this.graph.displayScene();

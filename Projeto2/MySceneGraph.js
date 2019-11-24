@@ -839,7 +839,6 @@ class MySceneGraph {
         this.animationsID = [];
         
         var animation = [];
-        var keyframes =[];
 
         var grandChildren = [];
 
@@ -851,6 +850,7 @@ class MySceneGraph {
                 this.onXMLMinorError("unknown tag <" + children[i].nodeName + ">");
                 continue;
             }
+            var keyframes =[];
 
             // Get id of the current primitive.
             var animationId = this.reader.getString(children[i], 'id');
@@ -865,11 +865,11 @@ class MySceneGraph {
             var grandgrandChildren;
             var initial = new MyKeyFrame(this.scene, 0, [0,0,0], [1,1,1], [0,0,0]);
             keyframes.push(initial);
-            for(var i=0; i < grandChildren.length;i++)
+            for(var a=0; a < grandChildren.length;a++)
             {
                 var keyframe = [];
-                var keyframeInstant = this.reader.getFloat(grandChildren[i], 'instant');
-                grandgrandChildren = grandChildren[i].children;
+                var keyframeInstant = this.reader.getFloat(grandChildren[a], 'instant');
+                grandgrandChildren = grandChildren[a].children;
 
                 for(var j=0; j < grandgrandChildren.length; j++){
                     switch (grandgrandChildren[j].nodeName) {
@@ -942,7 +942,7 @@ class MySceneGraph {
             // Validate the primitive type
             if (grandChildren.length != 1 ||
                 (grandChildren[0].nodeName != 'rectangle' && grandChildren[0].nodeName != 'triangle' &&
-                    grandChildren[0].nodeName != 'cylinder' && grandChildren[0].nodeName != 'sphere' &&
+                    grandChildren[0].nodeName != 'cylinder' && grandChildren[0].nodeName != 'cylinder2' && grandChildren[0].nodeName != 'sphere' &&
                     grandChildren[0].nodeName != 'torus' && grandChildren[0].nodeName != 'plane' && grandChildren[0].nodeName != 'patch')) {
                 return "There must be exactly 1 primitive type (rectangle, triangle, cylinder, sphere, plane or torus)"
             }
@@ -1075,6 +1075,37 @@ class MySceneGraph {
 
 
                 var cylind = new MyCylinder(this.scene, primitiveId, base, top, height, slices, stacks);
+
+                this.primitives[primitiveId] = cylind;
+            }
+            else if (primitiveType == 'cylinder2') {
+                // baseRadius
+                var base = this.reader.getFloat(grandChildren[0], 'base');
+                if (!(base != null && !isNaN(base)))
+                    return "unable to parse baseRadius of the primitive coordinates for ID = " + primitiveId;
+
+                // topRadius
+                var top = this.reader.getFloat(grandChildren[0], 'top');
+                if (!(top != null && !isNaN(top)))
+                    return "unable to parse topRadius of the primitive coordinates for ID = " + primitiveId;
+
+                // height
+                var height = this.reader.getFloat(grandChildren[0], 'height');
+                if (!(height != null && !isNaN(height)))
+                    return "unable to parse height of the primitive coordinates for ID = " + primitiveId;
+
+                // slices
+                var slices = this.reader.getFloat(grandChildren[0], 'slices');
+                if (!(slices != null && !isNaN(slices)))
+                    return "unable to parse slices of the primitive coordinates for ID = " + primitiveId;
+
+                // stacks
+                var stacks = this.reader.getFloat(grandChildren[0], 'stacks');
+                if (!(stacks != null && !isNaN(stacks)))
+                    return "unable to parse stacks of the primitive coordinates for ID = " + primitiveId;
+
+
+                var cylind2 = new MyCylinder2(this.scene, primitiveId, base, top, height, slices, stacks);
 
                 this.primitives[primitiveId] = cylind;
             }
@@ -1273,9 +1304,8 @@ class MySceneGraph {
                 animations.push(animationId);
                 component.animation = animations;
 
-                if(component.animation != null){
-                    this.animations[component.animation].startAnimation();
-                }
+                this.animations[component.animation].startAnimation();
+                
             }
 
             // Materials

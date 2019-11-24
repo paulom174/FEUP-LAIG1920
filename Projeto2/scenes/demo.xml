@@ -76,6 +76,8 @@
         <texture id="appleTexture" file="scenes/images/apple.jpg" />
         <texture id="greenSofaTexture" file="scenes/images/greensofa.jpg" />
         <texture id="slime" file="scenes/images/slime.jpg" />
+        <texture id="robot" file="scenes/images/robot.jpg" />
+        <texture id="black_robot" file="scenes/images/black_robot.jpg" />
     </textures>
 
     <materials>
@@ -103,7 +105,7 @@
     </transformations>
 
     <animations>
-        <!-- <animation id="teste" >
+        <animation id="teste" >
             <keyframe instant="5">
                 <translate x="0" y="0" z="0" />
                 <rotate angle_x="90" angle_y="0" angle_z="0" />
@@ -124,7 +126,7 @@
                 <rotate angle_x="0" angle_y="0" angle_z="0" />
                 <scale x="1" y="1" z="1" />
             </keyframe>
-        </animation> -->
+        </animation>
         <animation id="jump">
             <keyframe instant="5">
                 <translate x="0" y="0" z="0" />
@@ -221,6 +223,10 @@
             <cylinder base="2" top="2" height="4" slices="20" stacks="20" />
         </primitive>
 
+        <primitive id="demoCylinder2">
+            <cylinder2 base="2" top="2" height="4" slices="20" stacks="20" />
+        </primitive>
+
         <primitive id="vase">
             <cylinder base="1.5" top="2" height="4" slices="20" stacks="20" />
         </primitive>
@@ -240,10 +246,10 @@
                 <controlpoint xx="0" yy="1" zz="0" />
                 <controlpoint xx="1" yy="0" zz="0" />
                 <controlpoint xx="1" yy="0.5" zz="1" />
-                <controlpoint xx="1" yy="1" zz="0" />
-                
+                <controlpoint xx="1" yy="1" zz="0" />   
             </patch>
-        </primitive> 
+        </primitive>
+        
     </primitives>
 
     <components>
@@ -255,7 +261,7 @@
             </materials>
             <texture id="demoTexture" length_s="1" length_t="1"/>
             <children>
-                <componentref id="Walls" />
+                <!-- <componentref id="Walls" />
                 <componentref id="Door" />
                 <componentref id="TV" />
                 <componentref id="TVcabinet" />
@@ -269,8 +275,8 @@
                 <componentref id="Basket" />
                 <componentref id="Fruit" />
                 <componentref id="Sofa" />
-                <componentref id="Slime" />
- 
+                <componentref id="Slime" /> -->
+                <componentref id="Asp" />
             </children>
         </component>
 
@@ -557,7 +563,7 @@
             <transformation>
                 <translate x="4.5" y="0.85" z="1" />
             </transformation>
-            <!-- <animationref id="teste" /> -->
+            <animationref id="teste" />
             <materials>
                 <material id="moreDiffuse" />
             </materials>
@@ -691,7 +697,6 @@
 
         <component id="TVscreen">
             <transformation> 
-                <!-- <rotate axis="z" angle="180" />  -->
                 <translate x="0.75" y="3.4" z="1" />
                 <scale x="3.5" y="1.5" z="1" />
             </transformation>
@@ -2501,6 +2506,53 @@
             <texture id="slime" length_s="1" length_t="2"/>
             <children>
                 <componentref id="Cube" />
+            </children>
+        </component>
+
+        <component id="Asp">
+            <transformation>
+            </transformation>
+            <animation>
+                <animationref id="acrossRoom"/>
+            </animation>
+            <materials>
+                <material id="moreDiffuse" />
+            </materials>
+            <texture id="robot" length_s="1" length_t="1"/>
+            <children>
+                <componentref id="Esf" />
+                <componentref id="Cil" />
+            </children>
+        </component>
+
+        <component id="Esf">
+            <transformation>
+                <translate x="0.75" y="0.5" z="0.75" />
+                <scale x="0.6" y="0.1" z="0.6" />
+                <rotate axis="x" angle="90" />
+            </transformation>
+            <materials>
+                <material id="inherit" />
+            </materials>
+            <texture id="inherit" length_s="1" length_t="1"/>
+            <children>
+                <componentref id="brush1" />
+                <primitiveref id="demoSphere" />
+            </children>
+        </component>
+
+        <component id="Cil">
+            <transformation>
+                <translate x="0.75" y="0.5" z="0.75" />
+                <scale x="0.3" y="0.1" z="0.3" />
+                <rotate axis="x" angle="90" />
+            </transformation>
+            <materials>
+                <material id="inherit" />
+            </materials>
+            <texture id="black_robot" length_s="1" length_t="1"/>
+            <children>
+                <primitiveref id="demoCylinder2" />
             </children>
         </component>
 
