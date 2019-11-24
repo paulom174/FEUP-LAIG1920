@@ -5,6 +5,7 @@
 class MyKeyFrame extends CGFobject {
     constructor(scene, instant, translation, scaling, rotation){
         super(scene);
+        this.scene = scene;
         this.instant = instant;
         this.translation = translation;
         this.scaling = scaling;
@@ -13,7 +14,7 @@ class MyKeyFrame extends CGFobject {
     }
 
     calcKeyframe(keyframe1, keyframe2, factor){
-        var ret = new MyKeyFrame(0, [], [], []);
+        var ret = new MyKeyFrame(this.scene ,0, [], [], []);
 
         for(var i=0; i < 3; i++){
 

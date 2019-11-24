@@ -774,6 +774,7 @@ class MySceneGraph {
             // Specifications for the current transformation.
 
             var transfMatrix = mat4.create();
+            
 
             for (var j = 0; j < grandChildren.length; j++) {
                 switch (grandChildren[j].nodeName) {
@@ -799,6 +800,7 @@ class MySceneGraph {
                         var axis = this.reader.getString(grandChildren[j], 'axis');
                         var angle = this.reader.getString(grandChildren[j], 'angle');
                         angle *=DEGREE_TO_RAD;
+                        
 
                         if (axis == 'x')
                             //var vec = new vec3(1, 0, 0);
@@ -834,6 +836,7 @@ class MySceneGraph {
         var children = animationsNode.children;
 
         this.animations = [];
+        this.animationsID = [];
         
         var animation = [];
         var keyframes =[];
@@ -903,6 +906,7 @@ class MySceneGraph {
                     keyframes.push(keyframe);
                 }
                 var animation = new MyAnimation(this.scene, animationId, keyframes);
+                this.animationsID.push(animationId);
                 this.animations[animationId] = animation;
             }
         }
@@ -1259,25 +1263,23 @@ class MySceneGraph {
             // Animation
             var animations = [];
             var no;
-            var dif = materialsIndex - animationIndex;
 
             if(animationIndex != -1){
 
-                for(var b =0; b < dif; b++){
-                    no = grandChildren[animationIndex + b];
-                    if (no.nodeName != "animationref") {
-                    this.onXMLMinorError("unknown tag <" + no.nodeName + ">");
-                    continue;
-                    }
-                    var animationId = this.reader.getString(no, "id");
-                    animations.push(animationId);
                 
+                no = grandChildren[animationIndex];
+                if (no.nodeName != "animationref") {
+                this.onXMLMinorError("unknown tag <" + no.nodeName + ">");
+                continue;
                 }
+                var animationId = this.reader.getString(no, "id");
+
+                animations.push(animationId);
                 component.animation = animations;
 
-                if(component.animation != null){
-                    this.animations[component.animation[0]].startAnimation();
-                }
+                // if(component.animation != null){
+                //     this.animations[component.animation].startAnimation();
+                // }
             }
 
             // Materials
@@ -1330,12 +1332,10 @@ class MySceneGraph {
     }
 
     updateAnimation(dif){
-        // for(var i =0; i < this.animations.length; i++){
-        //     this.animations[ani]
-        // }
-        this.animations.forEach(animation => {
-            animation.update(dif);
-        });
+
+        for(var i=0; i<this.animationsID.length; i++){
+            this.animations[this.animationsID[i]].update(dif);
+        }
     }
 
 
@@ -1562,9 +1562,9 @@ class MySceneGraph {
                 this.scene.pushMatrix();
                 var transID = this.transformations[component.id];
                 this.scene.multMatrix(transID);
-                // if(component.animation != null){
-                //     this.animations[component.animation[0]].startAnimation();
-                // }
+                if(component.animation != null){
+                    this.animations[component.animation].apply();
+                }
                 var primitiveID = component.primitive[i];
 
                 mat.setTexture(text);
@@ -1587,6 +1587,9 @@ class MySceneGraph {
                     this.scene.pushMatrix();
                     var transID = this.transformations[component.id];
                     this.scene.multMatrix(transID);
+                    if (component.animation != null) {
+                        this.animations[component.animation].apply();
+                    }
                     this.displayComponent(this.components[component.child[i]], mat, text);
                     this.scene.popMatrix();
             }
