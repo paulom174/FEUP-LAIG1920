@@ -1,4 +1,3 @@
-
 class LightingScene extends CGFscene{
 	constructor() {
 		super();
@@ -6,9 +5,13 @@ class LightingScene extends CGFscene{
 		this.appearance = null;
 		this.surfaces = [];
 		this.translations = [];
+
 		this.response = null;
 		this.board = null;
-		this.boardArray = null;
+		this.game = [];
+		this.validMoves=null;
+		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "end":10});
+		this.state = this.stateEnum.start;
 	}
 	init(application) {
 		super.init(application);
@@ -25,9 +28,13 @@ class LightingScene extends CGFscene{
 		this.appearance.setDiffuse(0.7, 0.7, 0.7, 1);
 		this.appearance.setSpecular(0.0, 0.0, 0.0, 1);
 		this.appearance.setShininess(120);
+
+
 		this.piece = new MyPiece(this);
 
+		this.setupConditions();
 	}
+
 	initLights() {
 		this.lights[0].setPosition(1, 1, 1, 1);
 		this.lights[0].setAmbient(0.1, 0.1, 0.1, 1);
@@ -43,8 +50,9 @@ class LightingScene extends CGFscene{
 		this.lights[1].enable();
 		this.lights[1].update();
 	}
+
 	initCameras() {
-		this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(15, 14, 13), vec3.fromValues(0, 0, 0));
+		this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 135, 20), vec3.fromValues(20, 0, 10));
 	}
 
 	display() {
@@ -66,17 +74,7 @@ class LightingScene extends CGFscene{
 		//this.appearance.apply();
 		// draw objects
 
-		if(this.boardArray != null) {
-            this.pushMatrix();
-            this.board.display();
-            this.popMatrix();
-        }
-        else {
-            this.makeRequest("board(Board)");
-            if(this.response != null) {
-                this.parseBoard(this.response);
-            }
-		}
+		this.stateMachine(this.state);
 		
 	}
 	getPrologRequest(requestString, onSuccess, onError, port)
@@ -93,7 +91,7 @@ class LightingScene extends CGFscene{
 	}
 	
 	makeRequest(requestString)
-	{				
+	{			
 		// Make Request
 		this.getPrologRequest(requestString, this.handleReply.bind(this));
 
@@ -113,9 +111,86 @@ class LightingScene extends CGFscene{
 	}
 
 	parseBoard(boardString){
-		this.boardArray = JSON.parse(boardString);
-		this.board = new MyBoard(this, this.boardArray);
+		// this.updateBoard(boardString);
+		// this.board = new MyBoard(this, this.game.boardString);
+
+		if(this.board == null)
+			this.board = new MyBoard(this, boardString);
+		else
+			this.board.updateBoard(this.board);
 	}
+
+	parseMoves(movesString){
+		this.game.movesString = movesString;
+		this.game.movesArray = JSON.parse(movesString);
+		this.board.updateValidMoves(this.game.movesArray);
+		console.log(this.game.movesArray);
+	}
+
+
+	setupConditions(){
+		this.game.maxPieces = 40;
+		this.game.numPlayers = 2;
+		this.game.currentPlayer = 0;
+		this.game.nextPlayer = 1;
+		this.game.numPieces = 0;
+		this.game.movesString = "";
+		this.game.movesArray = null;
+		this.game.gameOver = false;
+	}
+
+	checkConditions(){
+		if(this.game.numPieces >= this.game.maxPieces)
+			return -1;
+		if(this.numPlayers > 2)
+			return -1;
+		if(this.game.currentPlayer > 1 || this.game.nextPlayer > 1)
+			return -1;
+
+		return 0;
+	}
+
+	drawBoard(){
+		if(this.board != null) {
+            this.pushMatrix();
+            this.board.display();
+            this.popMatrix();
+        }
+        else {
+            this.makeRequest("board(Board)");
+            if(this.response != null) {
+                this.parseBoard(this.response);
+            }
+		}
+	}
+
+	getValidMoves(){
+		if(this.board != null){
+            this.makeRequest("valid_moves("+this.board.boardString+","+this.game.currentPlayer+",Moves)");
+            if(this.response != null) {
+                this.parseMoves(this.response);
+            }
+		}
+	}
+
+	stateMachine(state){
+
+		switch (state){
+			case this.stateEnum.start:
+				this.drawBoard();
+				this.state = this.stateEnum.validMoves;
+				break;
+			
+			case this.stateEnum.validMoves:
+				this.getValidMoves();
+				this.drawBoard();
+				break;
+			
+		}
+
+	}
+
+
 					
 }
 

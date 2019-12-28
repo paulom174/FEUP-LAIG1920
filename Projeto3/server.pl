@@ -108,6 +108,9 @@ print_header_line(_).
 parse_input(handshake, handshake).
 parse_input(initialize(Board,Pieces), Board):-
 	initialize(Board, Pieces).
+parse_input(valid_moves(Board,Player,Moves), Moves):-
+	valid_moves(Board,Player,Moves).
+
 parse_input(board(Board), Board):-
 	board(Board).
 parse_input(test(C,N), N).

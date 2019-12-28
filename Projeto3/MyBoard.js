@@ -3,52 +3,75 @@
  * @constructor
  */
 class MyBoard extends CGFobject {
-    constructor(scene, boardArray){
-    super(scene);
-    this.boardArray = boardArray;
-    this.initBuffers();
-    this.init();
-    this.piece = new MyPiece(this.scene);
+    constructor(scene, boardString){
+        super(scene);
 
-}
+        this.updateBoard(boardString);
+        this.initBuffers();
+        this.init();
+        this.piece = new MyPiece(this.scene);
+    }
 
-initBuffers()
-{
-    this.vertices = [];
-    this.indices = [];
-    this.normals=[];
+    initBuffers()
+    {
+        this.vertices = [];
+        this.indices = [];
+        this.normals=[];
 
-    this.primitiveType = this.scene.gl.TRIANGLES;
-    this.initGLBuffers();
+        this.primitiveType = this.scene.gl.TRIANGLES;
+        this.initGLBuffers();
+    }
 
-    console.log(this.boardArray);
-}
+    init(){
+        //white texture
+        this.white = new CGFappearance(this.scene);
+        this.white.setAmbient(1, 1, 1, 1);
+        this.white.setDiffuse(1, 1, 1, 1);
+        this.white.setSpecular(1, 1, 1, 1);
+        this.white.setShininess(10.0);
+        this.white.loadTexture('images/white.jpg');
+        this.white.setTextureWrap('REPEAT', 'REPEAT');
 
-init(){
+        //green texture
+        this.green = new CGFappearance(this.scene);
+        this.green.setAmbient(0, 1, 0, 1);
+        this.green.setDiffuse(0, 1, 0, 1);
+        this.green.setSpecular(0, 1, 0, 1);
+        this.green.setShininess(10.0);
 
-    //white texture
-    this.white = new CGFappearance(this.scene);
-    this.white.setAmbient(1, 1, 1, 1);
-    this.white.setDiffuse(1, 1, 1, 1);
-    this.white.setSpecular(1, 1, 1, 1);
-    this.white.setShininess(10.0);
-    this.white.loadTexture('images/white.jpg');
-    this.white.setTextureWrap('REPEAT', 'REPEAT');
+        //red texture
+        this.red = new CGFappearance(this.scene);
+        this.red.setAmbient(1, 0, 0, 1);
+        this.red.setDiffuse(1, 0, 0, 1);
+        this.red.setSpecular(1, 0, 0, 1);
+        this.red.setShininess(10.0);
 
-    //green texture
-    this.green = new CGFappearance(this.scene);
-    this.green.setAmbient(0, 1, 0, 1);
-    this.green.setDiffuse(0, 1, 0, 1);
-    this.green.setSpecular(0, 1, 0, 1);
-    this.green.setShininess(10.0);
+        //yellow texture
+        this.yellow = new CGFappearance(this.scene);
+        this.yellow.setAmbient(1, 1, 0, 1);
+        this.yellow.setDiffuse(1, 1, 0, 1);
+        this.yellow.setSpecular(1, 1, 0, 1);
+        this.yellow.setShininess(10.0);
 
-    //red texture
-    this.red = new CGFappearance(this.scene);
-    this.red.setAmbient(1, 0, 0, 1);
-    this.red.setDiffuse(1, 0, 0, 1);
-    this.red.setSpecular(1, 0, 0, 1);
-    this.red.setShininess(10.0);
-}
+        //blue texture
+        this.blue = new CGFappearance(this.scene);
+        this.blue.setAmbient(0, 0, 1, 1);
+        this.blue.setDiffuse(0, 0, 1, 1);
+        this.blue.setSpecular(0, 0, 1, 1);
+        this.blue.setShininess(10.0);
+    }
+
+	updateBoard(boardString){
+		this.boardString = boardString;
+		this.boardArray = JSON.parse(boardString);
+    }
+
+    
+    updateValidMoves(movesArray){
+        this.movesArray = movesArray;
+    }
+    
+
 
     display(){
         this.scene.pushMatrix();
@@ -63,15 +86,25 @@ init(){
                     this.scene.pushMatrix();
                     this.scene.translate(1,0,0);
                 }
+
                 if(this.boardArray[i][j] == 0){
-                    this.white.apply();
+                    this.piece.changeColor(this.white);
                 }
                 if(this.boardArray[i][j] == 1){
-                    this.red.apply();
+                    this.piece.changeColor(this.red);
                 }
                 if(this.boardArray[i][j] == 3){
-                    this.green.apply();
+                    this.piece.changeColor(this.green);
                 }
+
+                if(this.movesArray != null){
+                    this.movesArray.forEach(move => {
+                        if(i == move[0] && j == move[1]){
+                            this.piece.changeColor(this.yellow);
+                        }
+                    });
+                }
+
                 this.piece.display();
                 if((i % 2) ==1){
                     this.scene.popMatrix();

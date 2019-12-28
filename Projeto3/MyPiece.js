@@ -17,6 +17,10 @@ class MyPiece extends CGFobject {
         this.initGLBuffers();
     }
 
+    changeColor(color){
+        color.apply();
+    }
+
     display(){
 
         this.scene.pushMatrix();
@@ -43,7 +47,6 @@ class MyPiece extends CGFobject {
         this.scene.popMatrix();
 
         this.scene.popMatrix();
-
     }
 
     updateTexCoords(s, t) {
