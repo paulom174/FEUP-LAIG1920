@@ -10,7 +10,7 @@ class LightingScene extends CGFscene{
 		this.board = null;
 		this.game = [];
 		this.validMoves=null;
-		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "end":10});
+		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "makeMove":3, "end":10});
 		this.state = this.stateEnum.start;
 	}
 	init(application) {
@@ -73,7 +73,6 @@ class LightingScene extends CGFscene{
 		this.axis.display();
 		//this.appearance.apply();
 		// draw objects
-
 		this.stateMachine(this.state);
 		
 	}
@@ -111,8 +110,6 @@ class LightingScene extends CGFscene{
 	}
 
 	parseBoard(boardString){
-		// this.updateBoard(boardString);
-		// this.board = new MyBoard(this, this.game.boardString);
 
 		if(this.board == null)
 			this.board = new MyBoard(this, boardString);
@@ -121,10 +118,7 @@ class LightingScene extends CGFscene{
 	}
 
 	parseMoves(movesString){
-		this.game.movesString = movesString;
-		this.game.movesArray = JSON.parse(movesString);
-		this.board.updateValidMoves(this.game.movesArray);
-		console.log(this.game.movesArray);
+		this.board.updateValidMoves(movesString);
 	}
 
 
@@ -134,8 +128,7 @@ class LightingScene extends CGFscene{
 		this.game.currentPlayer = 0;
 		this.game.nextPlayer = 1;
 		this.game.numPieces = 0;
-		this.game.movesString = "";
-		this.game.movesArray = null;
+		this.game.curMove;
 		this.game.gameOver = false;
 	}
 
@@ -159,17 +152,42 @@ class LightingScene extends CGFscene{
         else {
             this.makeRequest("board(Board)");
             if(this.response != null) {
-                this.parseBoard(this.response);
+				this.parseBoard(this.response);
             }
 		}
 	}
 
 	getValidMoves(){
 		if(this.board != null){
-            this.makeRequest("valid_moves("+this.board.boardString+","+this.game.currentPlayer+",Moves)");
-            if(this.response != null) {
-                this.parseMoves(this.response);
-            }
+			// if(this.board.movesArray == null){
+				this.makeRequest("valid_moves("+this.board.boardString+","+this.game.currentPlayer+",Moves)");
+				if(this.response != null) {
+					this.parseMoves(this.response);
+				}
+			// }
+		}
+	}
+
+	move(){
+		// choose a valid move...
+		if(this.board == null)
+			return;
+		else{
+			if(this.board.movesArray == null)
+				return;
+			this.game.curMove = this.board.movesArray[0];
+			//console.log(this.board.movesArray);
+
+
+			for(var i=0; i < this.board.movesArray.length; i++){
+				if(this.game.curMove == this.board.movesArray[i]){
+					console.log(i);
+					this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)");
+					if(this.response != null) {
+						//this.board.updateBoard(this.response);
+					}
+				}
+			}
 		}
 	}
 
@@ -182,10 +200,16 @@ class LightingScene extends CGFscene{
 				break;
 			
 			case this.stateEnum.validMoves:
-				this.getValidMoves();
 				this.drawBoard();
+				this.getValidMoves();
+				this.move();
+				this.state = this.stateEnum.validMoves;
 				break;
-			
+
+			case this.stateEnum.makeMove:
+				this.move();
+				//this.drawBoard();
+				break;
 		}
 
 	}
