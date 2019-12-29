@@ -106,13 +106,19 @@ print_header_line(_).
 :-include('game.pl').
 
 parse_input(handshake, handshake).
+
 parse_input(initialize(Board,Pieces), Board):-
 	initialize(Board, Pieces).
+
 parse_input(valid_moves(Board,Player,Moves), Moves):-
 	valid_moves(Board,Player,Moves).
 
+parse_input(do_action(Board,CurrentPlayer,Moves,Action,0,NewBoard), NewBoard):-
+	do_action(Board,CurrentPlayer,Moves,Action,0,NewBoard).
+
 parse_input(board(Board), Board):-
 	board(Board).
+	
 parse_input(test(C,N), N).
 % parse_input(test(C,N), Res) :- test(C,Res,N).
 parse_input(quit, goodbye).

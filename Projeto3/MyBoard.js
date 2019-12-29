@@ -67,8 +67,9 @@ class MyBoard extends CGFobject {
     }
 
     
-    updateValidMoves(movesArray){
-        this.movesArray = movesArray;
+    updateValidMoves(movesString){
+        this.movesString = movesString;
+        this.movesArray = JSON.parse(movesString);
     }
     
 
