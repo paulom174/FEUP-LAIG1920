@@ -180,14 +180,17 @@ check_endgame(Board,Coords,Player):-
     advance_startpiece(Board,Coords,3,Piece,EndPoint3),
     EndPoint = [[EndPoint1,1],[EndPoint2,2],[EndPoint3,6]],
     (advance_ncells(Board,EndPoint1,1,4,Piece)->
+        printBoard(Board),
         game_over;
         true
     ),
     (advance_ncells(Board,EndPoint2,2,4,Piece)->
+        printBoard(Board),
         game_over;
         true
     ),
-    (advance_ncells(Board,EndPoint3,6,4,Piece)->
+    (advance_ncells(Board,EndPoint3,6,4,Piece)->  
+        printBoard(Board),
         game_over;
         true
     ).

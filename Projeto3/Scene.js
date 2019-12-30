@@ -12,6 +12,9 @@ class LightingScene extends CGFscene{
 		this.validMoves=null;
 		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "makeMove":3, "end":10});
 		this.state = this.stateEnum.start;
+		this.stateInit = false;
+		this.piecePicked = false;
+		
 	}
 	init(application) {
 		super.init(application);
@@ -29,9 +32,9 @@ class LightingScene extends CGFscene{
 		this.appearance.setSpecular(0.0, 0.0, 0.0, 1);
 		this.appearance.setShininess(120);
 
-
 		this.piece = new MyPiece(this);
-
+		
+		this.setPickEnabled(true);
 		this.setupConditions();
 	}
 
@@ -56,7 +59,7 @@ class LightingScene extends CGFscene{
 	}
 
 	display() {
-
+		this.logPicking();
 		// Clear image and depth buffer every time we update the scene
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -73,7 +76,11 @@ class LightingScene extends CGFscene{
 		this.axis.display();
 		//this.appearance.apply();
 		// draw objects
+
 		this.stateMachine(this.state);
+		this.drawBoard();
+		
+		this.clearPickRegistration();
 		
 	}
 	getPrologRequest(requestString, onSuccess, onError, port)
@@ -89,10 +96,10 @@ class LightingScene extends CGFscene{
 		request.send();
 	}
 	
-	makeRequest(requestString)
+	makeRequest(requestString, onSuccess)
 	{			
 		// Make Request
-		this.getPrologRequest(requestString, this.handleReply.bind(this));
+		this.getPrologRequest(requestString, onSuccess.bind(this));
 
 	}
 
@@ -101,13 +108,56 @@ class LightingScene extends CGFscene{
 		// Make Request
 		this.getPrologRequest("quit", this.handleReply);
 	}
+
+	logPicking() {
+		if (this.pickMode == false) {
+			if (this.pickResults != null && this.pickResults.length > 0) {
+				for (var i = 0; i < this.pickResults.length; i++) {
+					var obj = this.pickResults[i][0];
+					if (obj) {
+						this.piecePicked = true;
+						this.newPiece = this.pickResults[i][1];
+						console.log("Picked object: " + obj + ", with pick id " + this.newPiece);						
+					}
+				}
+				this.pickResults.splice(0, this.pickResults.length);
+			}
+		}
+	}
 		
 
 		//Handle the Reply
-	handleReply(data){
+	getBoardRequest(data){
 		this.response = data.target.response;
+		this.parseBoard(this.response);
 		//document.querySelector("#query_result").innerHTML=data.target.response;
 	}
+
+	getValidMovesRequest(data){
+		this.response = data.target.response;
+		this.parseMoves(this.response);
+	}
+
+	getMoveRequest(data){
+		this.response = data.target.response;
+		this.board.updateBoard(this.response);
+		this.changePlayers();
+		this.board.showValid = false;
+		this.state = this.stateEnum.validMoves;
+		this.stateInit = false;
+	}
+	changePlayers(){
+		if(this.game.currentPlayer == 0){
+			this.game.currentPlayer = 1;
+			this.game.nextPlayer = 0;
+		}
+		else{
+			this.game.currentPlayer = 0;
+			this.game.nextPlayer = 1;
+		}
+	}
+
+
 
 	parseBoard(boardString){
 
@@ -115,10 +165,16 @@ class LightingScene extends CGFscene{
 			this.board = new MyBoard(this, boardString);
 		else
 			this.board.updateBoard(this.board);
+
+		this.state = this.stateEnum.validMoves;
+		this.stateInit = false;
+
 	}
 
 	parseMoves(movesString){
 		this.board.updateValidMoves(movesString);
+		this.state = this.stateEnum.makeMove;
+		this.stateInit = false;
 	}
 
 
@@ -128,7 +184,7 @@ class LightingScene extends CGFscene{
 		this.game.currentPlayer = 0;
 		this.game.nextPlayer = 1;
 		this.game.numPieces = 0;
-		this.game.curMove;
+		this.game.curMove = [];
 		this.game.gameOver = false;
 	}
 
@@ -149,12 +205,6 @@ class LightingScene extends CGFscene{
             this.board.display();
             this.popMatrix();
         }
-        else {
-            this.makeRequest("board(Board)");
-            if(this.response != null) {
-				this.parseBoard(this.response);
-            }
-		}
 	}
 
 	getValidMoves(){
@@ -170,46 +220,47 @@ class LightingScene extends CGFscene{
 
 	move(){
 		// choose a valid move...
-		if(this.board == null)
-			return;
-		else{
-			if(this.board.movesArray == null)
+			if(!this.piecePicked){
 				return;
-			this.game.curMove = this.board.movesArray[0];
-			//console.log(this.board.movesArray);
+			}
+			
+			this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
+			this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
 
 
-			for(var i=0; i < this.board.movesArray.length; i++){
-				if(this.game.curMove == this.board.movesArray[i]){
-					console.log(i);
-					this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)");
-					if(this.response != null) {
-						//this.board.updateBoard(this.response);
+			if(!this.stateInit){
+				let cur = JSON.stringify(this.game.curMove);
+				for(var i=0; i < this.board.movesArray.length; i++){
+					let move = JSON.stringify(this.board.movesArray[i]);
+					if(cur === move){
+						this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)", this.getMoveRequest);
+						this.piecePicked = false;
+						this.stateInit = true;
 					}
 				}
 			}
-		}
 	}
 
 	stateMachine(state){
 
 		switch (state){
 			case this.stateEnum.start:
-				this.drawBoard();
-				this.state = this.stateEnum.validMoves;
+				if(!this.stateInit){
+					this.makeRequest("board(Board)", this.getBoardRequest);
+					this.stateInit = true;
+				}
 				break;
 			
 			case this.stateEnum.validMoves:
-				this.drawBoard();
-				this.getValidMoves();
-				this.move();
-				this.state = this.stateEnum.validMoves;
+				if(!this.stateInit){
+					this.makeRequest("valid_moves("+this.board.boardString+","+this.game.currentPlayer+",Moves)", this.getValidMovesRequest);
+					this.stateInit = true;
+				}
 				break;
 
 			case this.stateEnum.makeMove:
-				this.move();
-				//this.drawBoard();
-				break;
+					this.move();
+			break;
 		}
 
 	}

@@ -70,6 +70,7 @@ class MyBoard extends CGFobject {
     updateValidMoves(movesString){
         this.movesString = movesString;
         this.movesArray = JSON.parse(movesString);
+        this.showValid = true;
     }
     
 
@@ -98,13 +99,16 @@ class MyBoard extends CGFobject {
                     this.piece.changeColor(this.green);
                 }
 
-                if(this.movesArray != null){
+                if(this.showValid){
                     this.movesArray.forEach(move => {
                         if(i == move[0] && j == move[1]){
                             this.piece.changeColor(this.yellow);
                         }
                     });
                 }
+
+                //Id for pickable objects must be >= 1
+                this.scene.registerForPick((j + 1)+i*20, this.piece);
 
                 this.piece.display();
                 if((i % 2) ==1){
