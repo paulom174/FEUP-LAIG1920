@@ -10,7 +10,7 @@ class LightingScene extends CGFscene{
 		this.board = null;
 		this.game = [];
 		this.validMoves=null;
-		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "makeMove":3, "end":10});
+		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "makeMove":3, "checkEndGame":4, "checkHex":5, "gameOver":6, "end":10});
 		this.state = this.stateEnum.start;
 		this.stateInit = false;
 		this.piecePicked = false;
@@ -100,7 +100,6 @@ class LightingScene extends CGFscene{
 	{			
 		// Make Request
 		this.getPrologRequest(requestString, onSuccess.bind(this));
-
 	}
 
 	sendQuit()
@@ -138,29 +137,26 @@ class LightingScene extends CGFscene{
 		this.parseMoves(this.response);
 	}
 
+	getCheckEndGame(data){
+		this.response = data.target.response;
+		this.parseEndGame(this.response);
+	}
+
+	getCheckHex(data){
+		this.response = data.target.response;
+		this.parseHex(this.response);
+	}
+
 	getMoveRequest(data){
 		this.response = data.target.response;
 		this.board.updateBoard(this.response);
 		this.changePlayers();
 		this.board.showValid = false;
-		this.state = this.stateEnum.validMoves;
+		this.state = this.stateEnum.checkEndGame;
 		this.stateInit = false;
 	}
-	changePlayers(){
-		if(this.game.currentPlayer == 0){
-			this.game.currentPlayer = 1;
-			this.game.nextPlayer = 0;
-		}
-		else{
-			this.game.currentPlayer = 0;
-			this.game.nextPlayer = 1;
-		}
-	}
-
-
 
 	parseBoard(boardString){
-
 		if(this.board == null)
 			this.board = new MyBoard(this, boardString);
 		else
@@ -168,7 +164,6 @@ class LightingScene extends CGFscene{
 
 		this.state = this.stateEnum.validMoves;
 		this.stateInit = false;
-
 	}
 
 	parseMoves(movesString){
@@ -177,12 +172,29 @@ class LightingScene extends CGFscene{
 		this.stateInit = false;
 	}
 
+	parseHex(boardString){
+		this.board.updateBoard(boardString);
+		this.state = this.stateEnum.validMoves;
+		this.stateInit = false;
+	}
+
+	parseEndGame(result){
+		console.log(result);
+		if(result == "1"){
+			this.state = this.stateEnum.gameOver;
+		}
+		else{
+			this.state = this.stateEnum.checkHex;
+		}
+		this.stateInit = false;
+	}
+
 
 	setupConditions(){
 		this.game.maxPieces = 40;
 		this.game.numPlayers = 2;
-		this.game.currentPlayer = 0;
-		this.game.nextPlayer = 1;
+		this.game.currentPlayer = 1;
+		this.game.nextPlayer = 0;
 		this.game.numPieces = 0;
 		this.game.curMove = [];
 		this.game.gameOver = false;
@@ -197,6 +209,17 @@ class LightingScene extends CGFscene{
 			return -1;
 
 		return 0;
+	}
+
+	changePlayers(){
+		if(this.game.currentPlayer == 0){
+			this.game.currentPlayer = 1;
+			this.game.nextPlayer = 0;
+		}
+		else{
+			this.game.currentPlayer = 0;
+			this.game.nextPlayer = 1;
+		}
 	}
 
 	drawBoard(){
@@ -227,6 +250,7 @@ class LightingScene extends CGFscene{
 		this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
 		this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
 
+		console.log("aqui");
 
 		if(!this.stateInit){
 			let cur = JSON.stringify(this.game.curMove);
@@ -235,7 +259,7 @@ class LightingScene extends CGFscene{
 				if(cur === move){
 					this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)", this.getMoveRequest);
 					this.piecePicked = false;
-					this.stateInit = true;
+					//this.stateInit = true;
 				}
 			}
 		}
@@ -259,8 +283,34 @@ class LightingScene extends CGFscene{
 				break;
 
 			case this.stateEnum.makeMove:
-					this.move();
-			break;
+				this.move();
+				break;
+				
+			case this.stateEnum.checkEndGame:
+				if(!this.stateInit){
+					this.abc="0";
+					this.makeRequest("check_endgame("+this.board.boardString+","+"["+this.game.curMove[0]+","+this.game.curMove[1]+"],"+this.game.nextPlayer+",State)", this.getCheckEndGame);
+					this.stateInit = true;
+				}
+				break;
+
+			case this.stateEnum.checkHex:
+				if(!this.stateInit){
+					this.makeRequest("check_hex("+this.board.boardString+","+this.game.curMove[1]+","+this.game.curMove[0]+","+this.game.nextPlayer+",Newboard)", this.getCheckHex);
+					this.stateInit = true;
+				}
+				break;
+
+			case this.stateEnum.gameOver:
+				if(!this.stateInit){
+					console.log("GameOver");
+					this.state = this.stateEnum.end;
+				}
+				break;
+
+			case this.stateEnum.end:
+				console.log("Game ended!");
+				break;
 		}
 
 	}

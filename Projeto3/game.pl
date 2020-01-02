@@ -10,10 +10,17 @@ play(Board,NewBoard,CurrentPlayer):-
     do_action(Board,CurrentPlayer,Moves,Action,0,NewBoard),
     printBoard(NewBoard).
 
-do_action(Board,Player,[Head|Tail],N,M,NewBoard):-
+do_action2(Board,Player,[Head|Tail],N,M,NewBoard):-
     get_split(Head,Y,X),
     get_head(X,X1),
     N=:=(M+1) -> move(Board,[Head|Player],B1), check_hex(B1,X1,Y,Player,NewBoard), check_endgame(NewBoard,Head,Player); true,
+    Z is M+1,
+    do_action2(Board,Player,Tail,N,Z,NewBoard).
+
+do_action(Board,Player,[Head|Tail],N,M,NewBoard):-
+    get_split(Head,Y,X),
+    get_head(X,X1),
+    N=:=(M+1) -> move(Board,[Head|Player],NewBoard); true,
     Z is M+1,
     do_action(Board,Player,Tail,N,Z,NewBoard).
 
@@ -33,7 +40,7 @@ find_cone(Board,[Head|Tail],Player,NewBoard):-
     get_head(X,X1),
     (check_empty(Board,Y,X1) ->
         (find_hex(Board,X1,Y,1)-> 
-            play_cone(Board,Head,B1);
+            play_cone(Board,Head,Player,B1);
             B1 = Board
         );
 
@@ -41,14 +48,19 @@ find_cone(Board,[Head|Tail],Player,NewBoard):-
     ),
     find_cone(B1,Tail,Player,NewBoard).
 
-play_cone(Board,Head,NewBoard):-
-    write('Which cone would you like to play?'),nl,
-    write('1 - White'),nl,
-    write('2 - Black'),nl,
-    read(Action),
-    Action == 1 -> 
+play_cone(Board,Head,Player,NewBoard):-
+    Player =:= 1 -> 
         move(Board,[Head|4],NewBoard); 
         move(Board,[Head|2],NewBoard).
+
+% play_cone(Board,Head,NewBoard):-
+  %  write('Which cone would you like to play?'),nl,
+   % write('1 - White'),nl,
+   % write('2 - Black'),nl,
+    % read(Action),
+    % Action == 1 -> 
+      %  move(Board,[Head|4],NewBoard); 
+       % move(Board,[Head|2],NewBoard).
 
 check_empty(Board,Y,X):-
     check_position(Board,X,Y,0,0,Element),
@@ -168,32 +180,73 @@ start_game(1):-
     % (check_position(Board,-1,0,0,0,E)->  Element = E;
     % Element = -1
     % ),
-    % format('~p~n',[Element]).
+    % % format('~p~n',[Element]).
     %check_endgame(Board,[2,1],1).
 
-check_endgame(Board,Coords,Player):-
+    % check_endgame(Board,Coords,Player, State):-
+    %     (Player =:= 0-> Piece = 1; Piece = 3),
+    %     advance_startpiece(Board,Coords,4,Piece,EndPoint1),
+    %     % format('~p~n',[EndPoint1]),
+    %     advance_startpiece(Board,Coords,5,Piece,EndPoint2),
+    %     % format('~p~n',[EndPoint2]),
+    %     advance_startpiece(Board,Coords,3,Piece,EndPoint3),
+    %     EndPoint = [[EndPoint1,1],[EndPoint2,2],[EndPoint3,6]],
+    %     (advance_ncells(Board,EndPoint1,1,4,Piece)->
+    %         % printBoard(Board),
+    %         S1 = 1,
+    %         State is 1;
+    %         true
+    %     ),
+    %     (S1 == 0, advance_ncells(Board,EndPoint2,2,4,Piece)->
+    %         % printBoard(Board),
+    %         S1 = 1,
+    %         State is 1;
+    %         true
+    %     ),
+    %     (S1 == 0, advance_ncells(Board,EndPoint3,6,4,Piece)->  
+    %         % printBoard(Board),
+    %         S1 = 1,
+    %         State is 1;
+    %         true
+    %     ),
+    %     S1 == 0 -> State is 0.
+
+check_endgame(Board,Coords,Player, State):-
     (Player =:= 0-> Piece = 1; Piece = 3),
     advance_startpiece(Board,Coords,4,Piece,EndPoint1),
-    format('~p~n',[EndPoint1]),
+    % format('~p~n',[EndPoint1]),
     advance_startpiece(Board,Coords,5,Piece,EndPoint2),
-    format('~p~n',[EndPoint2]),
+    % format('~p~n',[EndPoint2]),
     advance_startpiece(Board,Coords,3,Piece,EndPoint3),
     EndPoint = [[EndPoint1,1],[EndPoint2,2],[EndPoint3,6]],
     (advance_ncells(Board,EndPoint1,1,4,Piece)->
-        printBoard(Board),
-        game_over;
-        true
-    ),
-    (advance_ncells(Board,EndPoint2,2,4,Piece)->
-        printBoard(Board),
-        game_over;
-        true
-    ),
-    (advance_ncells(Board,EndPoint3,6,4,Piece)->  
-        printBoard(Board),
-        game_over;
-        true
+        State is 1;
+
+        (advance_ncells(Board,EndPoint2,2,4,Piece)->
+            State is 1;
+
+            (advance_ncells(Board,EndPoint3,6,4,Piece)->
+                State is 1;
+
+                State is 0
+            )
+        )
     ).
+
+
+    % (S1 == 0, advance_ncells(Board,EndPoint2,2,4,Piece)->
+    %     % printBoard(Board),
+    %     S1 = 1,
+    %     State is 1;
+    %     true
+    % ),
+    % (S1 == 0, advance_ncells(Board,EndPoint3,6,4,Piece)->  
+    %     % printBoard(Board),
+    %     S1 = 1,
+    %     State is 1;
+    %     true
+    % ),
+    % S1 == 0 -> State is 0.
 
 test(_,[],N) :- N =< 0.
 test(A,[A|Bs],N) :- N1 is N-1, test(A,Bs,N1).
@@ -214,11 +267,11 @@ advance_ncells(Board,EndPoint,Dir,0,Element).
 advance_ncells(Board,Coords,Dir,N,Element):-
     next_cell(Coords,Dir,Next), !,
     N1 is N-1,
-    format('~p~n',[Next]),
+    % format('~p~n',[Next]),
     get_split(Next,Y,X),
     get_head(X,X1),
     check_position(Board,X1,Y,0,0,Piece),
-    format('~p~n',[[Next,Piece,Element]]),
+    % format('~p~n',[[Next,Piece,Element]]),
     % advance_ncells(Board,Next,Dir,N1,Element).
     (Element == Piece ->
         advance_ncells(Board,Next,Dir,N1,Element);
@@ -234,10 +287,10 @@ advance_startpiece(Board,Coords,Dir,Piece,EndPoint):-
     (check_position(Board,X1,Y,0,0,E)-> Element = E;
     Element = -1),
     (Element == Piece ->
-        %format('a~n',[]),
+        %% format('a~n',[]),
         advance_startpiece(Board,Next,Dir,Piece,EndPoint);
 
-        format('b~n',[]),
+        % format('b~n',[]),
         advance_startpiece([],Coords,Dir,Piece,EndPoint)
     ).
 

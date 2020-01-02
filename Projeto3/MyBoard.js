@@ -59,6 +59,13 @@ class MyBoard extends CGFobject {
         this.blue.setDiffuse(0, 0, 1, 1);
         this.blue.setSpecular(0, 0, 1, 1);
         this.blue.setShininess(10.0);
+
+        //turquese
+        this.turquese = new CGFappearance(this.scene);
+        this.turquese.setAmbient(0, 1, 1, 1);
+        this.turquese.setDiffuse(0, 0, 1, 1);
+        this.turquese.setSpecular(0, 0, 1, 1);
+        this.turquese.setShininess(10.0);
     }
 
 	updateBoard(boardString){
@@ -98,6 +105,11 @@ class MyBoard extends CGFobject {
                 if(this.boardArray[i][j] == 3){
                     this.piece.changeColor(this.green);
                 }
+                if(this.boardArray[i][j] == 4)
+                    this.piece.changeColor(this.blue);
+                    
+                if(this.boardArray[i][j] == 2)
+                    this.piece.changeColor(this.turquese);
 
                 if(this.showValid){
                     this.movesArray.forEach(move => {

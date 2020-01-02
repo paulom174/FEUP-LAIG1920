@@ -116,6 +116,12 @@ parse_input(valid_moves(Board,Player,Moves), Moves):-
 parse_input(do_action(Board,CurrentPlayer,Moves,Action,0,NewBoard), NewBoard):-
 	do_action(Board,CurrentPlayer,Moves,Action,0,NewBoard).
 
+parse_input(check_endgame(Board,Coords,Player,State), State):-
+	check_endgame(Board,Coords,Player,State).
+
+parse_input(check_hex(Board,X,Y,Player,NewBoard), NewBoard):-
+	check_hex(Board,X,Y,Player,NewBoard).
+
 parse_input(board(Board), Board):-
 	board(Board).
 	
