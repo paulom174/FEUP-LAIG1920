@@ -220,25 +220,25 @@ class LightingScene extends CGFscene{
 
 	move(){
 		// choose a valid move...
-			if(!this.piecePicked){
-				return;
-			}
-			
-			this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
-			this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
+		if(!this.piecePicked){
+			return;
+		}
+		
+		this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
+		this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
 
 
-			if(!this.stateInit){
-				let cur = JSON.stringify(this.game.curMove);
-				for(var i=0; i < this.board.movesArray.length; i++){
-					let move = JSON.stringify(this.board.movesArray[i]);
-					if(cur === move){
-						this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)", this.getMoveRequest);
-						this.piecePicked = false;
-						this.stateInit = true;
-					}
+		if(!this.stateInit){
+			let cur = JSON.stringify(this.game.curMove);
+			for(var i=0; i < this.board.movesArray.length; i++){
+				let move = JSON.stringify(this.board.movesArray[i]);
+				if(cur === move){
+					this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)", this.getMoveRequest);
+					this.piecePicked = false;
+					this.stateInit = true;
 				}
 			}
+		}
 	}
 
 	stateMachine(state){
