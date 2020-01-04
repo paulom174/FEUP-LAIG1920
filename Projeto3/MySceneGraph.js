@@ -377,8 +377,6 @@ class MySceneGraph {
 
         }
 
-        console.log(this.views[0]);
-        console.log(this.views[1]);
         return null;
     }
 
@@ -972,9 +970,9 @@ class MySceneGraph {
                 if (!(y2 != null && !isNaN(y2) && y2 > y1))
                     return "unable to parse y2 of the primitive coordinates for ID = " + primitiveId;
 
-                var rect = new MyRectangle(this.scene, primitiveId, x1, x2, y1, y2);
+                // var rect = new MyRectangle(this.scene, primitiveId, x1, x2, y1, y2);
 
-                this.primitives[primitiveId] = rect;
+                // this.primitives[primitiveId] = rect;
             }
             else if(primitiveType == 'triangle') {
                 // x1
@@ -1022,9 +1020,9 @@ class MySceneGraph {
                     return "unable to parse z3 of the primitive coordinates for ID = " + primitiveId;
 
 
-                var triang = new MyTriangle(this.scene, primitiveId, x1, x2, x3, y1, y2, y3, z1, z2, z3);
+                // var triang = new MyTriangle(this.scene, primitiveId, x1, x2, x3, y1, y2, y3, z1, z2, z3);
 
-                this.primitives[primitiveId] = triang;
+                // this.primitives[primitiveId] = triang;
             }
             else if (primitiveType == 'sphere') {
                 // radius
@@ -1043,9 +1041,9 @@ class MySceneGraph {
                     return "unable to parse stacks of the primitive coordinates for ID = " + primitiveId;
 
 
-                var sphe = new MySemiSphere(this.scene, primitiveId, radius, slices, stacks);
+                // var sphe = new MySemiSphere(this.scene, primitiveId, radius, slices, stacks);
 
-                this.primitives[primitiveId] = sphe;
+                // this.primitives[primitiveId] = sphe;
             }
             else if (primitiveType == 'cylinder') {
                 // baseRadius
@@ -1074,9 +1072,9 @@ class MySceneGraph {
                     return "unable to parse stacks of the primitive coordinates for ID = " + primitiveId;
 
 
-                var cylind = new MyCylinder(this.scene, primitiveId, base, top, height, slices, stacks);
+                // var cylind = new MyCylinder(this.scene, primitiveId, base, top, height, slices, stacks);
 
-                this.primitives[primitiveId] = cylind;
+                // this.primitives[primitiveId] = cylind;
             }
             else if (primitiveType == 'cylinder2') {
                 // baseRadius
@@ -1105,9 +1103,9 @@ class MySceneGraph {
                     return "unable to parse stacks of the primitive coordinates for ID = " + primitiveId;
 
 
-                var cylind2 = new MyCylinder2(this.scene, primitiveId, base, top, height, slices, stacks);
+                // var cylind2 = new MyCylinder2(this.scene, primitiveId, base, top, height, slices, stacks);
 
-                this.primitives[primitiveId] = cylind;
+                // this.primitives[primitiveId] = cylind;
             }
             else if (primitiveType == 'torus') {
                 // slices
@@ -1129,9 +1127,9 @@ class MySceneGraph {
                 if (!(inner != null && !isNaN(inner)))
                     return "unable to parse inner of the primitive coordinates for ID = " + primitiveId;
 
-                var torus = new MyTorus(this.scene, primitiveId, slices, stacks, outer, inner);
+                // var torus = new MyTorus(this.scene, primitiveId, slices, stacks, outer, inner);
 
-                this.primitives[primitiveId] = torus;
+                // this.primitives[primitiveId] = torus;
             }
 
             else if (primitiveType == 'plane') {
@@ -1145,9 +1143,9 @@ class MySceneGraph {
                 if (!(npartsV != null && !isNaN(npartsV)))
                     return "unable to parse npartsV of the primitive coordinates for ID = " + primitiveId;
 
-                var plane = new MyPlane(this.scene, primitiveId, npartsU, npartsV);
+                // var plane = new MyPlane(this.scene, primitiveId, npartsU, npartsV);
 
-                this.primitives[primitiveId] = plane;
+                // this.primitives[primitiveId] = plane;
 
             }
 
@@ -1205,9 +1203,9 @@ class MySceneGraph {
                 }
                 // cpoints = [];
                 // cpoints.push(U);
-                var patch = new MyPatch(this.scene, primitiveId, npointsU, npointsV, npartsU, npartsV, U);
+                // var patch = new MyPatch(this.scene, primitiveId, npointsU, npointsV, npartsU, npartsV, U);
 
-                this.primitives[primitiveId] = patch;
+                // this.primitives[primitiveId] = patch;
             }
 
             else {
@@ -1642,7 +1640,7 @@ class MySceneGraph {
 
         //this.primitives['demoPatch'].display();
 
-        this.displayComponent(this.components[this.idRoot], null, null);
+        //this.displayComponent(this.components[this.idRoot], null, null);
 
     }
 }

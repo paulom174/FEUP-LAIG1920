@@ -10,7 +10,7 @@ class MyPiece extends CGFobject {
         this.base = new MyHexagon(this.scene);
         this.color;
     }
-
+    
     initBuffers()
     {
         this.primitiveType = this.scene.gl.TRIANGLES;

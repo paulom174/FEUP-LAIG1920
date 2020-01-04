@@ -1,25 +1,27 @@
 class LightingScene extends CGFscene{
-	constructor() {
+	constructor(myinterface) {
 		super();
+		this.interface = myinterface;
 		this.texture = null;
 		this.appearance = null;
 		this.surfaces = [];
 		this.translations = [];
-
 		this.response = null;
 		this.board = null;
 		this.game = [];
 		this.validMoves=null;
-		this.stateEnum = Object.freeze({"start":1, "validMoves":2, "makeMove":3, "checkEndGame":4, "checkHex":5, "gameOver":6, "end":10});
+		this.stateEnum = Object.freeze({"start":1, "init":2, "validMoves":3, "makeMove":4, "checkEndGame":5, "checkHex":6, "gameOver":7, "end":10});
 		this.state = this.stateEnum.start;
 		this.stateInit = false;
-		this.piecePicked = false;
-		
+		this.piecePicked = false;	
+		this.start = false;
 	}
+
 	init(application) {
 		super.init(application);
-		this.initCameras();
+		
 		this.initLights();
+		this.initCameras();
 		this.gl.clearColor(0, 0, 0, 1.0);
 		this.gl.clearDepth(10000.0);
 		this.gl.enable(this.gl.DEPTH_TEST);
@@ -32,10 +34,13 @@ class LightingScene extends CGFscene{
 		this.appearance.setSpecular(0.0, 0.0, 0.0, 1);
 		this.appearance.setShininess(120);
 
+		this.setUpdatePeriod(1000/60);
+
 		this.piece = new MyPiece(this);
+		this.table = new MyTable(this);
 		
 		this.setPickEnabled(true);
-		this.setupConditions();
+
 	}
 
 	initLights() {
@@ -55,10 +60,25 @@ class LightingScene extends CGFscene{
 	}
 
 	initCameras() {
-		this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 135, 20), vec3.fromValues(20, 0, 10));
+		//this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 135, 20), vec3.fromValues(20, 0, 10));
+		this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 50, 100), vec3.fromValues(20, 0, 10));
+		this.view1 = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 75, 100), vec3.fromValues(20, 0, 10));
+		this.view2 = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 75, -70), vec3.fromValues(20, 0, 10));
+
+		this.viewSelected = 0;
+
+		this.views = [];
+		this.views.push(this.camera);
+		this.views.push(this.view1);
+		this.views.push(this.view2);
+
+		this.interface.addCameras();
 	}
 
+	
+
 	display() {
+
 		this.logPicking();
 		// Clear image and depth buffer every time we update the scene
 		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -78,7 +98,9 @@ class LightingScene extends CGFscene{
 		// draw objects
 
 		this.stateMachine(this.state);
+		this.table.display();
 		this.drawBoard();
+
 		
 		this.clearPickRegistration();
 		
@@ -123,9 +145,53 @@ class LightingScene extends CGFscene{
 			}
 		}
 	}
-		
 
-		//Handle the Reply
+    onChangeCamera() {
+        this.camera = this.views[this.viewSelected];
+
+        this.interface.setActiveCamera(this.camera);
+    }
+
+	startGame(){
+		console.log("start game!");
+		this.reset();
+		this.state = this.stateEnum.start;
+		this.start = true;
+		this.stateInit = false;
+		this.setupConditions();
+	}
+
+	quitGame(){
+		this.state = this.stateEnum.gameOver;
+		this.start = false;
+	}
+
+	reset(){
+		this.board = null;
+		this.start = false;
+	}
+
+	undoPlay(){
+		if(this.board.allBoards.length < 2)
+			return;
+
+		this.board.saveBoards.push(this.board.allBoards.pop());
+		this.board.updateBoard(this.board.allBoards[this.board.allBoards.length -1]);
+		this.changePlayers();
+		this.state = this.stateEnum.validMoves;
+	}
+
+	redoPlay(){
+		if(this.board.saveBoards.length < 1)
+		return;
+		var string = this.board.saveBoards.pop();
+		this.board.allBoards.push(string);
+		this.board.updateBoard(string);
+		this.changePlayers();
+		this.state = this.stateEnum.validMoves;
+	}
+		
+	//Handle the Reply
 	getBoardRequest(data){
 		this.response = data.target.response;
 		this.parseBoard(this.response);
@@ -145,10 +211,17 @@ class LightingScene extends CGFscene{
 	getCheckHex(data){
 		this.response = data.target.response;
 		this.parseHex(this.response);
+		if(this.game.currentPlayer == 1)
+			this.camera = this.view1;
+		else
+			this.camera = this.view2;
+
+		this.interface.setActiveCamera(this.camera);
 	}
 
 	getMoveRequest(data){
 		this.response = data.target.response;
+		this.board.allBoards.push(this.response);
 		this.board.updateBoard(this.response);
 		this.changePlayers();
 		this.board.showValid = false;
@@ -157,8 +230,11 @@ class LightingScene extends CGFscene{
 	}
 
 	parseBoard(boardString){
-		if(this.board == null)
+		if(this.board == null){
 			this.board = new MyBoard(this, boardString);
+			this.board.allBoards.push(boardString);
+		}
+
 		else
 			this.board.updateBoard(this.board);
 
@@ -179,7 +255,6 @@ class LightingScene extends CGFscene{
 	}
 
 	parseEndGame(result){
-		console.log(result);
 		if(result == "1"){
 			this.state = this.stateEnum.gameOver;
 		}
@@ -188,7 +263,6 @@ class LightingScene extends CGFscene{
 		}
 		this.stateInit = false;
 	}
-
 
 	setupConditions(){
 		this.game.maxPieces = 40;
@@ -250,7 +324,6 @@ class LightingScene extends CGFscene{
 		this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
 		this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
 
-		console.log("aqui");
 
 		if(!this.stateInit){
 			let cur = JSON.stringify(this.game.curMove);
@@ -269,6 +342,12 @@ class LightingScene extends CGFscene{
 
 		switch (state){
 			case this.stateEnum.start:
+					if(this.start)
+						this.state = this.stateEnum.init;
+
+				break;
+
+			case this.stateEnum.init:
 				if(!this.stateInit){
 					this.makeRequest("board(Board)", this.getBoardRequest);
 					this.stateInit = true;
@@ -288,7 +367,6 @@ class LightingScene extends CGFscene{
 				
 			case this.stateEnum.checkEndGame:
 				if(!this.stateInit){
-					this.abc="0";
 					this.makeRequest("check_endgame("+this.board.boardString+","+"["+this.game.curMove[0]+","+this.game.curMove[1]+"],"+this.game.nextPlayer+",State)", this.getCheckEndGame);
 					this.stateInit = true;
 				}
@@ -303,14 +381,11 @@ class LightingScene extends CGFscene{
 
 			case this.stateEnum.gameOver:
 				if(!this.stateInit){
-					console.log("GameOver");
-					this.state = this.stateEnum.end;
+					console.log("Game ended!");
+					this.stateInit = true;
 				}
 				break;
 
-			case this.stateEnum.end:
-				console.log("Game ended!");
-				break;
 		}
 
 	}

@@ -5,11 +5,13 @@
 class MyBoard extends CGFobject {
     constructor(scene, boardString){
         super(scene);
-
+        this.allBoards = [];
+        this.saveBoards = [];
         this.updateBoard(boardString);
         this.initBuffers();
         this.init();
         this.piece = new MyPiece(this.scene);
+        this.count = 0;
     }
 
     initBuffers()
@@ -18,19 +20,39 @@ class MyBoard extends CGFobject {
         this.indices = [];
         this.normals=[];
 
+        this.hex = new CGFOBJModel(this.scene, 'models/piece.obj');
+        this.tower = new CGFOBJModel(this.scene, 'models/tower.obj');
+
         this.primitiveType = this.scene.gl.TRIANGLES;
         this.initGLBuffers();
     }
 
     init(){
+
+
         //white texture
         this.white = new CGFappearance(this.scene);
         this.white.setAmbient(1, 1, 1, 1);
         this.white.setDiffuse(1, 1, 1, 1);
         this.white.setSpecular(1, 1, 1, 1);
         this.white.setShininess(10.0);
-        this.white.loadTexture('images/white.jpg');
         this.white.setTextureWrap('REPEAT', 'REPEAT');
+
+        //white texture
+        this.beje = new CGFappearance(this.scene);
+        this.beje.setAmbient(0.7, 0.7, 0.7, 1);
+        this.beje.setDiffuse(0.7, 0.7, 0.7, 1);
+        this.beje.setSpecular(0.7, 0.7, 0.7, 1);
+        this.beje.setShininess(10.0);
+        this.beje.setTextureWrap('REPEAT', 'REPEAT');
+
+        //black texture
+        this.black = new CGFappearance(this.scene);
+        this.black.setAmbient(0.2, 0.2, 0.2, 1);
+        this.black.setDiffuse(0.2, 0.2, 0.2, 1);
+        this.black.setSpecular(0.2, 0.2, 0.2, 1);
+        this.black.setShininess(10.0);
+        this.black.setTextureWrap('REPEAT', 'REPEAT');
 
         //green texture
         this.green = new CGFappearance(this.scene);
@@ -70,7 +92,7 @@ class MyBoard extends CGFobject {
 
 	updateBoard(boardString){
 		this.boardString = boardString;
-		this.boardArray = JSON.parse(boardString);
+        this.boardArray = JSON.parse(boardString);
     }
 
     
@@ -80,8 +102,6 @@ class MyBoard extends CGFobject {
         this.showValid = true;
     }
     
-
-
     display(){
         this.scene.pushMatrix();
         this.scene.rotate(Math.PI/2, 1,0,0);
@@ -95,21 +115,37 @@ class MyBoard extends CGFobject {
                     this.scene.pushMatrix();
                     this.scene.translate(1,0,0);
                 }
-
                 if(this.boardArray[i][j] == 0){
                     this.piece.changeColor(this.white);
                 }
                 if(this.boardArray[i][j] == 1){
-                    this.piece.changeColor(this.red);
+                    this.scene.pushMatrix();
+                    this.piece.changeColor(this.black);
+                    this.scene.rotate(-Math.PI/2, 1,0,0);
+                    this.hex.display();
+                    this.scene.popMatrix();
                 }
                 if(this.boardArray[i][j] == 3){
-                    this.piece.changeColor(this.green);
+                    this.scene.pushMatrix();
+                    this.piece.changeColor(this.beje);
+                    this.scene.rotate(-Math.PI/2, 1,0,0);
+                    this.hex.display();
+                    this.scene.popMatrix();
                 }
-                if(this.boardArray[i][j] == 4)
-                    this.piece.changeColor(this.blue);
-                    
-                if(this.boardArray[i][j] == 2)
-                    this.piece.changeColor(this.turquese);
+                if(this.boardArray[i][j] == 4){
+                    this.scene.pushMatrix();
+                    this.piece.changeColor(this.white);
+                    this.scene.rotate(-Math.PI/2, 1,0,0);
+                    this.tower.display();
+                    this.scene.popMatrix();
+                }
+                if(this.boardArray[i][j] == 2){
+                    this.scene.pushMatrix();
+                    this.piece.changeColor(this.black);
+                    this.scene.rotate(-Math.PI/2, 1,0,0);
+                    this.tower.display();
+                    this.scene.popMatrix();
+                }
 
                 if(this.showValid){
                     this.movesArray.forEach(move => {
@@ -132,9 +168,8 @@ class MyBoard extends CGFobject {
         }
         this.scene.popMatrix();
     }
-    updateTexCoords(s, t) {
 
+    updateTexCoords(s, t) {
         this.updateTexCoordsGLBuffers();
     }
-
 };
