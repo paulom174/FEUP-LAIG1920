@@ -3,19 +3,30 @@
 
     <views default="defaultCamera">
         <perspective id="defaultCamera" near="0.1" far="500" angle="45">
-            <from x="20" y="100" z="20" />
-            <to x="20" y="0" z="10" />
+            <from x="67" y="50" z="30" />
+            <to x="0" y="-2" z="0" />
         </perspective>
 
-        <perspective id="Camera1" near="0.1" far="500" angle="30">
-            <from x="20" y="50" z="100" />
-            <to x="20" y="0" z="10" />
+        <perspective id="Camera1" near="0.1" far="500" angle="90">
+            <from x="10" y="5" z="10" />
+            <to x="10" y="5" z="0" />
         </perspective>
 
-        <perspective id="Camera2" near="0.1" far="500" angle="30">
-            <from x="20" y="50" z="-70" />
-            <to x="20" y="0" z="10" />
+        <perspective id="Camera2" near="0.1" far="500" angle="90">
+            <from x="10" y="5" z="10" />
+            <to x="0" y="5" z="10" />
         </perspective>
+
+        <perspective id="Camera3" near="0.1" far="500" angle="90">
+            <from x="10" y="5" z="10" />
+            <to x="10" y="5" z="20" />
+        </perspective>
+
+        <perspective id="Camera4" near="0.1" far="500" angle="90">
+            <from x="10" y="5" z="10" />
+            <to x="20" y="5" z="10" />
+        </perspective>
+
     </views>
 
     <globals>
@@ -331,13 +342,10 @@
                 <componentref id="Floor" />
                 <componentref id="Table" />
                 <componentref id="Chairs" />
-                <componentref id="Painting" />
-                <componentref id="Window" />
                 <componentref id="Cabinet" />
                 <componentref id="Plant" />
                 <componentref id="Basket" />
                 <componentref id="Fruit" />
-                <componentref id="Sofa" />
                 <componentref id="Slime" />
                 <componentref id="Asp" />
                 <componentref id="Painting2" />

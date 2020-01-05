@@ -134,8 +134,9 @@ class MyBoard extends CGFobject {
                 }
                 if(this.boardArray[i][j] == 4){
                     this.scene.pushMatrix();
-                    this.piece.changeColor(this.white);
+                    this.piece.changeColor(this.beje);
                     this.scene.rotate(-Math.PI/2, 1,0,0);
+                    this.scene.scale(0.8,1.3,0.8);
                     this.tower.display();
                     this.scene.popMatrix();
                 }
@@ -143,6 +144,7 @@ class MyBoard extends CGFobject {
                     this.scene.pushMatrix();
                     this.piece.changeColor(this.black);
                     this.scene.rotate(-Math.PI/2, 1,0,0);
+                    this.scene.scale(0.8,1.5,0.8);
                     this.tower.display();
                     this.scene.popMatrix();
                 }

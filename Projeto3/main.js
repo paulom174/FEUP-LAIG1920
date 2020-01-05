@@ -11,8 +11,8 @@ function getUrlVars() {
     return vars;
 }	
 
-serialInclude(['../lib/CGF.js', 'Scene.js', 'MySceneGraph.js', 'MyInterface.js', 'Cylinder.js', 'MyPrisma.js', 'MyHexagon.js', 'MyBoard.js', 'MyPiece.js', 'MyAnimation.js', 'MyKeyframe.js', 'CGFOBJModel.js', 'CGFResourceReader.js', 'MyQuad.js', 'MyUnitCubeQuad.js', 'MyTable.js',
-
+serialInclude(['../lib/CGF.js', 'Scene.js', 'MySceneGraph.js', 'MyInterface.js', 'Cylinder.js', 'MyPrisma.js', 'MyHexagon.js', 'MyBoard.js', 'MyPiece.js', 'MyAnimation.js', 'MyKeyframe.js', 'CGFOBJModel.js', 'CGFResourceReader.js', 'MyQuad.js', 'MyUnitCubeQuad.js', 'MyTable.js', 'MyRectangle.js', 'MyTriangle.js', 'MyCylinder.js','MyCylinder2.js', 'MySemiSphere.js', 'MyTorus.js', 'MyPlane.js', 'MyPatch.js',
+//serialInclude(['../lib/CGF.js', 'XMLscene.js', 'MySceneGraph.js', 'MyInterface.js', 'MyRectangle.js', 'MyTriangle.js', 'MyCylinder.js','MyCylinder2.js', 'MySemiSphere.js', 'MyTorus.js', 'MyPlane.js', 'MyPatch.js', 'MySecurityCamera.js', 'MyAnimation.js', 'MyKeyFrame.js',
 main=function()
 {
     var app = new CGFapplication(document.body);
@@ -26,8 +26,8 @@ main=function()
 
     myInterface.setActiveCamera(myScene.camera);
 
-    var filename=getUrlVars()['file'] || "demo.xml";
-    var myGraph = new MySceneGraph(filename, myScene);
+    //var filename=getUrlVars()['file'] || "demo.xml";
+    //var myGraph = new MySceneGraph(filename, myScene);
 
 	app.run();
 }

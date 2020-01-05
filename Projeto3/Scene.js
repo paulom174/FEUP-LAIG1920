@@ -2,82 +2,170 @@ class LightingScene extends CGFscene{
 	constructor(myinterface) {
 		super();
 		this.interface = myinterface;
-		this.texture = null;
-		this.appearance = null;
-		this.surfaces = [];
-		this.translations = [];
 		this.response = null;
 		this.board = null;
-		this.game = [];
 		this.validMoves=null;
-		this.stateEnum = Object.freeze({"start":1, "init":2, "validMoves":3, "makeMove":4, "checkEndGame":5, "checkHex":6, "gameOver":7, "end":10});
-		this.state = this.stateEnum.start;
 		this.stateInit = false;
 		this.piecePicked = false;	
 		this.start = false;
+		this.gameEnded = false;
+		this.total =0;
+		this.initTime =0;
+		this.timePerPlay =0;
+		this.initTimePlay =0;
+
 	}
 
 	init(application) {
 		super.init(application);
+		this.graphs = [];
+
+		this.game = [];
+		this.stateEnum = Object.freeze({"start":1, "init":2, "validMoves":3, "makeMove":4, "checkEndGame":5, "checkHex":6, "gameOver":7, "gameMovie":8, "end":10});
+		this.state = this.stateEnum.start;
 		
-		this.initLights();
-		this.initCameras();
-		this.gl.clearColor(0, 0, 0, 1.0);
-		this.gl.clearDepth(10000.0);
-		this.gl.enable(this.gl.DEPTH_TEST);
-		this.gl.enable(this.gl.CULL_FACE);
-		this.gl.depthFunc(this.gl.LEQUAL);
-		this.axis = new CGFaxis(this);
-		this.appearance = new CGFappearance(this);
-		this.appearance.setAmbient(0.3, 0.3, 0.3, 1);
-		this.appearance.setDiffuse(0.7, 0.7, 0.7, 1);
-		this.appearance.setSpecular(0.0, 0.0, 0.0, 1);
-		this.appearance.setShininess(120);
-
-		this.setUpdatePeriod(1000/60);
-
 		this.piece = new MyPiece(this);
 		this.table = new MyTable(this);
 		
 		this.setPickEnabled(true);
 
+		this.scenesOnHold = 0;
+
+		this.loadScene("demo.xml");
+		this.loadScene("exp.xml");
 	}
 
-	initLights() {
-		this.lights[0].setPosition(1, 1, 1, 1);
-		this.lights[0].setAmbient(0.1, 0.1, 0.1, 1);
-		this.lights[0].setDiffuse(0.9, 0.9, 0.9, 1);
-		this.lights[0].setSpecular(0, 0, 0, 1);
-		this.lights[0].enable();
-		this.lights[0].update();
-		
-		this.lights[1].setPosition(3,3,3,1);
-		this.lights[1].setAmbient(0.1, 0.1, 0.1, 1);
-		this.lights[1].setDiffuse(0.9, 0.9, 0.9, 1);
-		this.lights[1].setSpecular(0, 0, 0, 1);
-		this.lights[1].enable();
-		this.lights[1].update();
+	loadScene(filename){
+		this.scenesOnHold++;
+		let scene = new MySceneGraph(filename, this);
+		this.graphs.push(scene);
 	}
+
+	onGraphLoaded() {
+
+		this.scenesOnHold--;
+
+		if(this.scenesOnHold > 0)
+			return;
+		
+		this.graph = this.graphs[0];
+
+
+		this.enableTextures(true);
+		
+        this.gl.clearDepth(100.0);
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.enable(this.gl.CULL_FACE);
+        this.gl.depthFunc(this.gl.LEQUAL);
+		this.gl.clearColor(this.graph.background[0], this.graph.background[1], this.graph.background[2], this.graph.background[3]);
+		
+		
+		this.setGlobalAmbientLight(this.graph.ambient[0], this.graph.ambient[1], this.graph.ambient[2], this.graph.ambient[3]);
+		
+		this.axis = new CGFaxis(this, this.graph.referenceLength);
+		
+        this.setUpdatePeriod(100);
+		
+        this.initCameras();
+		this.initLights();
+		this.initMaterials();
+
+        this.sceneInited = true;
+	}
+	
+	update(time){
+		this.time = time;
+		var dif = time - this.lastUpdate;
+		
+        if(!this.sceneInited)
+			return;
+			
+		this.total = (this.time - this.initTime)/1000;
+		this.timePerPlay = (this.time - this.initTimePlay)/1000;
+        //this.graph.updateAnimation(dif/1000);
+    }
+
+    initLights() {
+        var i = 0;
+        // Lights index.
+
+        // Reads the lights from the scene graph.
+        for (var key in this.graph.lights) {
+            if (i >= 8)
+                break;              // Only eight lights allowed by WebGL.
+
+            if (this.graph.lights.hasOwnProperty(key)) {
+                var light = this.graph.lights[key];
+
+                this.lights[i].setPosition(light[2][0], light[2][1], light[2][2], light[2][3]);
+                this.lights[i].setAmbient(light[3][0], light[3][1], light[3][2], light[3][3]);
+                this.lights[i].setDiffuse(light[4][0], light[4][1], light[4][2], light[4][3]);
+                this.lights[i].setSpecular(light[5][0], light[5][1], light[5][2], light[5][3]);
+
+                this.lights[i].setConstantAttenuation(light[6]);
+                this.lights[i].setLinearAttenuation(light[7]);
+                this.lights[i].setQuadraticAttenuation(light[8]);
+
+
+
+                if (light[1] == "spot") {
+                    this.lights[i].setSpotCutOff(light[9]);
+                    this.lights[i].setSpotExponent(light[10]);
+                    this.lights[i].setSpotDirection(light[11][0], light[11][1], light[11][2]);
+                }
+
+                this.lights[i].setVisible(true);
+                if (light[0])
+                    this.lights[i].enable();
+                else
+                    this.lights[i].disable();
+
+                this.lights[i].update();
+
+                i++;
+            }
+        }
+    }
 
 	initCameras() {
-		//this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 135, 20), vec3.fromValues(20, 0, 10));
-		this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 50, 100), vec3.fromValues(20, 0, 10));
-		this.view1 = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 75, 100), vec3.fromValues(20, 0, 10));
-		this.view2 = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(20, 75, -70), vec3.fromValues(20, 0, 10));
+        this.viewSelected =0;
+        this.cameraNamestoIndex = {};
 
-		this.viewSelected = 0;
+        for(var i=0; i < this.graph.views.length; i++){
+            this.cameraNamestoIndex[this.graph.views[i][0]] = i;
+        }
 
-		this.views = [];
-		this.views.push(this.camera);
-		this.views.push(this.view1);
-		this.views.push(this.view2);
+        this.interface.addCameras();
 
-		this.interface.addCameras();
+        this.onChangeCamera();
+    }
+
+
+	initMaterials(){
+		this.appearance = new CGFappearance(this);
+		this.appearance.setAmbient(0.3, 0.3, 0.3, 1);
+		this.appearance.setDiffuse(0.7, 0.7, 0.7, 1);
+		this.appearance.setSpecular(0.0, 0.0, 0.0, 1);
+		this.appearance.setShininess(120);
 	}
 
-	
+	updateHTML(){
+		if (this.start) {
+			if (this.game.currentPlayer == 1) {
+			  document.getElementById("player").innerText = "Player: White\n";
+			} else if (this.game.player == 2) {
+				document.getElementById("player").innerText = "Player: Black\n";
+			}
+			
+			document.getElementById("timePerPlay").innerText = "Time to play:  " + Math.floor((30 - this.timePerPlay));
+			document.getElementById("timeTotal").innerText = "\n\nTotal Time: " + Math.floor(this.total) + "\n\n";
+		  }
+	}
 
 	display() {
+
+		if(!this.sceneInited)
+			return;
 
 		this.logPicking();
 		// Clear image and depth buffer every time we update the scene
@@ -89,13 +177,15 @@ class LightingScene extends CGFscene{
 		this.loadIdentity();
 		// Apply transformations corresponding to the camera position relative to the origin
 		this.applyViewMatrix();
-		//this.scale(5,5,5);
 		// Update all lights used
 		this.lights[0].update();
 		// Draw axis
 		this.axis.display();
 		//this.appearance.apply();
 		// draw objects
+
+		this.graph.displayScene();
+		this.updateHTML();
 
 		this.stateMachine(this.state);
 		this.table.display();
@@ -147,7 +237,7 @@ class LightingScene extends CGFscene{
 	}
 
     onChangeCamera() {
-        this.camera = this.views[this.viewSelected];
+        this.camera = this.graph.views[this.viewSelected][1];
 
         this.interface.setActiveCamera(this.camera);
     }
@@ -157,6 +247,7 @@ class LightingScene extends CGFscene{
 		this.reset();
 		this.state = this.stateEnum.start;
 		this.start = true;
+		this.initTime = this.time;
 		this.stateInit = false;
 		this.setupConditions();
 	}
@@ -208,15 +299,19 @@ class LightingScene extends CGFscene{
 		this.parseEndGame(this.response);
 	}
 
+	changeCamera(){
+		if(this.game.currentPlayer == 1)
+			this.camera = this.graph.views[1][1];
+		else
+			this.camera = this.graph.views[2][1];
+
+		this.interface.setActiveCamera(this.camera);
+	}
+
 	getCheckHex(data){
 		this.response = data.target.response;
 		this.parseHex(this.response);
-		if(this.game.currentPlayer == 1)
-			this.camera = this.view1;
-		else
-			this.camera = this.view2;
-
-		this.interface.setActiveCamera(this.camera);
+		this.changeCamera();
 	}
 
 	getMoveRequest(data){
@@ -315,11 +410,22 @@ class LightingScene extends CGFscene{
 		}
 	}
 
+	timeout(){
+		this.changePlayers();
+		this.changeCamera();
+		this.state = this.stateEnum.validMoves;
+	}
+
 	move(){
-		// choose a valid move...
+
+		if(this.timePerPlay > 30){
+				this.timeout();
+			}
+
 		if(!this.piecePicked){
 			return;
 		}
+
 		
 		this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
 		this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
@@ -356,6 +462,7 @@ class LightingScene extends CGFscene{
 			
 			case this.stateEnum.validMoves:
 				if(!this.stateInit){
+					this.initTimePlay = this.time;
 					this.makeRequest("valid_moves("+this.board.boardString+","+this.game.currentPlayer+",Moves)", this.getValidMovesRequest);
 					this.stateInit = true;
 				}
@@ -382,6 +489,7 @@ class LightingScene extends CGFscene{
 			case this.stateEnum.gameOver:
 				if(!this.stateInit){
 					console.log("Game ended!");
+					this.gameEnded = true;
 					this.stateInit = true;
 				}
 				break;
