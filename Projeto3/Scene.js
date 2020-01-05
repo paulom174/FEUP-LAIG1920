@@ -285,11 +285,13 @@ class LightingScene extends CGFscene{
 	setMode(){
 		if(this.mode == "player vs player"){
 			this.pvp = true;
+			this.pvb = false;
 			this.bvb = false;
 			this.isBot = false;
 		}
 		else if(this.mode == "player vs bot"){
 			this.bvb = false;
+			this.pvb = true;
 			this.isBot = true;
 			this.pvp = false;
 		}
@@ -297,6 +299,7 @@ class LightingScene extends CGFscene{
 			this.bvb = true;
 			this.isBot = true;
 			this.pvp = false;
+			this.pvb = false;
 		}
 	}
 
@@ -491,11 +494,11 @@ class LightingScene extends CGFscene{
 
 		this.alreadyPlayed = true;
 		
-		if(!this.isBot){
+		if((!this.isBot && this.pvp) || (this.isBot && this.pvb && this.game.currentPlayer == 1)){
 			this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
 			this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
 		}
-		else{
+		else if((this.isBot && this.pvb && this.game.currentPlayer == 0) || (this.isBot && this.bvb)){
 			var n = this.randomNumberBetweenInterval(0, (this.board.movesArray.length-1));
 			this.game.curMove[0] = this.board.movesArray[n][0];
 			this.game.curMove[1] = this.board.movesArray[n][1];	
