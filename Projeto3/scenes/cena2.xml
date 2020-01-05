@@ -319,7 +319,7 @@
     <components>
         <component id="demoRoot">
             <transformation>
-                <translate x="-88.5" y="-39" z="-93" />
+                <translate x="-90.5" y="-39" z="-93" />
                 <scale x="11" y="11" z="11" />
             </transformation>
             <materials>
