@@ -23,6 +23,8 @@ class MyInterface extends CGFinterface {
         // add a group of controls (and open/expand by defult)
         this.gui.add(this.scene, 'startGame').name('Start Game');
         this.gui.add(this.scene, 'quitGame').name('End Game');
+        //this.gui.add(this.scene, 'bot').name('Bot');
+        this.gui.add(this.scene, 'mode', [ 'player vs player', 'player vs bot', 'bot vs bot' ] );
         var f = this.gui.addFolder('Actions');
         f.add(this.scene, 'redoPlay').name('redo');
         f.add(this.scene, 'undoPlay').name('undo');
@@ -58,8 +60,20 @@ class MyInterface extends CGFinterface {
         return this.activeKeys[keyCode] || false;
     }
 
+    addScenes(){
+        if(this.scenes != null){
+            this.gui.remove(this.scenes);
+        }
+        this.scenes = this.gui.add(this.scene, 'curScene', this.scene.graphsName).onChange(this.scene.onChangeScene.bind(this.scene)).name('Scenes');
+    }
+
+
+
     addCameras(){
-        // this.gui.add(this.scene, 'viewSelected', this.scene.viewNames).onChange(this.scene.onChangeCamera.bind(this.scene)).name('Views');
-        this.gui.add(this.scene, 'viewSelected', this.scene.cameraNamestoIndex).onChange(this.scene.onChangeCamera.bind(this.scene)).name('Views');
+        if(this.views != null){
+            this.gui.remove(this.views);
+        }
+
+        this.views = this.gui.add(this.scene, 'viewSelected', this.scene.cameraNamestoIndex).onChange(this.scene.onChangeCamera.bind(this.scene)).name('Views');
     }
 }

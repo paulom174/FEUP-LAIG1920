@@ -9,6 +9,10 @@ class LightingScene extends CGFscene{
 		this.piecePicked = false;	
 		this.start = false;
 		this.gameEnded = false;
+		this.bot = false;
+		this.mode = null;
+		this.botReady = false;
+		this.alreadyPlayed = false;
 		this.total =0;
 		this.initTime =0;
 		this.timePerPlay =0;
@@ -18,7 +22,9 @@ class LightingScene extends CGFscene{
 
 	init(application) {
 		super.init(application);
-		this.graphs = [];
+		this.graphs = new Map();
+		this.graphsName = [];
+		this.curScene = "demo";
 
 		this.game = [];
 		this.stateEnum = Object.freeze({"start":1, "init":2, "validMoves":3, "makeMove":4, "checkEndGame":5, "checkHex":6, "gameOver":7, "gameMovie":8, "end":10});
@@ -31,14 +37,35 @@ class LightingScene extends CGFscene{
 
 		this.scenesOnHold = 0;
 
-		this.loadScene("demo.xml");
-		this.loadScene("exp.xml");
+		this.loadScene("demo.xml", "demo");
+		this.loadScene("exp.xml", "exp");
 	}
 
-	loadScene(filename){
+	loadScene(filename, name){
 		this.scenesOnHold++;
 		let scene = new MySceneGraph(filename, this);
-		this.graphs.push(scene);
+		this.graphs.set(name, scene);
+		this.graphsName.push(name);
+	}
+
+	onChangeScene(){
+
+		this.sceneInited = false;
+
+		this.graph = this.graphs.get(this.curScene);
+
+		this.load();
+
+		this.sceneInited = true;
+	}
+
+	load(){
+
+		this.gl.clearColor(this.graph.background[0], this.graph.background[1], this.graph.background[2], this.graph.background[3]);
+		this.setGlobalAmbientLight(this.graph.ambient[0], this.graph.ambient[1], this.graph.ambient[2], this.graph.ambient[3]);
+		
+		this.initCameras();
+		this.initLights();
 	}
 
 	onGraphLoaded() {
@@ -47,8 +74,9 @@ class LightingScene extends CGFscene{
 
 		if(this.scenesOnHold > 0)
 			return;
-		
-		this.graph = this.graphs[0];
+
+		this.interface.addScenes();
+		this.onChangeScene();
 
 
 		this.enableTextures(true);
@@ -64,7 +92,8 @@ class LightingScene extends CGFscene{
 		
 		this.axis = new CGFaxis(this, this.graph.referenceLength);
 		
-        this.setUpdatePeriod(100);
+		this.setUpdatePeriod(100);
+		this.lastUpdate = Date.now();
 		
         this.initCameras();
 		this.initLights();
@@ -74,14 +103,17 @@ class LightingScene extends CGFscene{
 	}
 	
 	update(time){
+		
 		this.time = time;
-		var dif = time - this.lastUpdate;
+		var dif = (this.time - this.lastUpdate)/1000;
+
 		
         if(!this.sceneInited)
 			return;
-			
-		this.total = (this.time - this.initTime)/1000;
-		this.timePerPlay = (this.time - this.initTimePlay)/1000;
+		if(this.start){
+			this.timePerPlay += (dif);
+			this.total += (dif);
+		}	
         //this.graph.updateAnimation(dif/1000);
     }
 
@@ -153,12 +185,12 @@ class LightingScene extends CGFscene{
 		if (this.start) {
 			if (this.game.currentPlayer == 1) {
 			  document.getElementById("player").innerText = "Player: White\n";
-			} else if (this.game.player == 2) {
+			} else if (this.game.currentPlayer == 0) {
 				document.getElementById("player").innerText = "Player: Black\n";
 			}
-			
-			document.getElementById("timePerPlay").innerText = "Time to play:  " + Math.floor((30 - this.timePerPlay));
-			document.getElementById("timeTotal").innerText = "\n\nTotal Time: " + Math.floor(this.total) + "\n\n";
+
+			document.getElementById("timePerPlay").innerText = "Time to play:  " + ((this.alreadyPlayed ? this.timePerPlay : (this.total%30)).toFixed(2));
+			document.getElementById("timeTotal").innerText = "\n\nTotal Time: " + (this.total.toFixed(2)) + "\n\n";
 		  }
 	}
 
@@ -184,8 +216,9 @@ class LightingScene extends CGFscene{
 		//this.appearance.apply();
 		// draw objects
 
-		this.graph.displayScene();
+		//this.graph.displayScene();
 		this.updateHTML();
+
 
 		this.stateMachine(this.state);
 		this.table.display();
@@ -236,15 +269,41 @@ class LightingScene extends CGFscene{
 		}
 	}
 
+	randomNumberBetweenInterval(min, max) {  
+		return Math.floor(Math.random() * (max - min + 1) + min);
+	}
+
+	sleep (time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
     onChangeCamera() {
         this.camera = this.graph.views[this.viewSelected][1];
 
         this.interface.setActiveCamera(this.camera);
-    }
+	}
+	
+	setMode(){
+		if(this.mode == "player vs player"){
+			this.pvp = true;
+			this.bvb = false;
+			this.isBot = false;
+		}
+		else if(this.mode == "player vs bot"){
+			this.bvb = false;
+			this.isBot = true;
+			this.pvp = false;
+		}
+		else if(this.mode == "bot vs bot"){
+			this.bvb = true;
+			this.isBot = true;
+			this.pvp = false;
+		}
+	}
 
 	startGame(){
 		console.log("start game!");
 		this.reset();
+		this.setMode();
 		this.state = this.stateEnum.start;
 		this.start = true;
 		this.initTime = this.time;
@@ -339,6 +398,7 @@ class LightingScene extends CGFscene{
 
 	parseMoves(movesString){
 		this.board.updateValidMoves(movesString);
+		this.botReady = false;
 		this.state = this.stateEnum.makeMove;
 		this.stateInit = false;
 	}
@@ -418,17 +478,29 @@ class LightingScene extends CGFscene{
 
 	move(){
 
-		if(this.timePerPlay > 30){
+		if(this.isBot && this.botReady)
+			return;
+
+		if(this.timePerPlay >= 30){
 				this.timeout();
 			}
 
-		if(!this.piecePicked){
+		if(!this.piecePicked && !this.isBot){
 			return;
 		}
 
+		this.alreadyPlayed = true;
 		
-		this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
-		this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
+		if(!this.isBot){
+			this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
+			this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
+		}
+		else{
+			var n = this.randomNumberBetweenInterval(0, (this.board.movesArray.length-1));
+			this.game.curMove[0] = this.board.movesArray[n][0];
+			this.game.curMove[1] = this.board.movesArray[n][1];	
+			console.log("bot turn");
+		}
 
 
 		if(!this.stateInit){
@@ -438,6 +510,7 @@ class LightingScene extends CGFscene{
 				if(cur === move){
 					this.makeRequest("do_action("+this.board.boardString+","+this.game.currentPlayer+","+this.board.movesString+","+(i+1)+",0,NewBoard)", this.getMoveRequest);
 					this.piecePicked = false;
+					this.botReady = true;
 					//this.stateInit = true;
 				}
 			}
@@ -462,7 +535,7 @@ class LightingScene extends CGFscene{
 			
 			case this.stateEnum.validMoves:
 				if(!this.stateInit){
-					this.initTimePlay = this.time;
+					this.timePerPlay = 0;
 					this.makeRequest("valid_moves("+this.board.boardString+","+this.game.currentPlayer+",Moves)", this.getValidMovesRequest);
 					this.stateInit = true;
 				}
@@ -493,7 +566,6 @@ class LightingScene extends CGFscene{
 					this.stateInit = true;
 				}
 				break;
-
 		}
 
 	}
