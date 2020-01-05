@@ -12,6 +12,7 @@ class LightingScene extends CGFscene{
 		this.bot = false;
 		this.mode = null;
 		this.botReady = false;
+		this.won = false;
 		this.alreadyPlayed = false;
 		this.total =0;
 		this.initTime =0;
@@ -49,11 +50,9 @@ class LightingScene extends CGFscene{
 	}
 
 	onChangeScene(){
-
 		this.sceneInited = false;
 
 		this.graph = this.graphs.get(this.curScene);
-
 		this.load();
 
 		this.sceneInited = true;
@@ -188,10 +187,16 @@ class LightingScene extends CGFscene{
 			} else if (this.game.currentPlayer == 0) {
 				document.getElementById("player").innerText = "Player: Black\n";
 			}
-
-			document.getElementById("timePerPlay").innerText = "Time to play:  " + ((this.alreadyPlayed ? this.timePerPlay : (this.total%30)).toFixed(2));
+			document.getElementById("timePerPlay").innerText = "Time to play:  " + ((this.alreadyPlayed ? (30 -this.timePerPlay) : (30 -(this.total%30))).toFixed(2));
 			document.getElementById("timeTotal").innerText = "\n\nTotal Time: " + (this.total.toFixed(2)) + "\n\n";
-		  }
+		}
+		if(this.gameEnded){
+			if(this.won)
+				document.getElementById("gameover").innerText = "GAME OVER!!\n\n"+((this.game.currentPlayer == 1) ? "Black":"White")+" won the game!";
+			else{
+				document.getElementById("gameover").innerText = "Game ended by request!\n\n";
+			}
+		}
 	}
 
 	display() {
@@ -275,7 +280,8 @@ class LightingScene extends CGFscene{
 
 	sleep (time) {
         return new Promise((resolve) => setTimeout(resolve, time));
-    }
+	}
+	
     onChangeCamera() {
         this.camera = this.graph.views[this.viewSelected][1];
 
@@ -283,23 +289,19 @@ class LightingScene extends CGFscene{
 	}
 	
 	setMode(){
+		this.modeID = 0;
+
 		if(this.mode == "player vs player"){
-			this.pvp = true;
-			this.pvb = false;
-			this.bvb = false;
 			this.isBot = false;
+			this.modeID = 0;
 		}
 		else if(this.mode == "player vs bot"){
-			this.bvb = false;
-			this.pvb = true;
 			this.isBot = true;
-			this.pvp = false;
+			this.modeID = 1;
 		}
 		else if(this.mode == "bot vs bot"){
-			this.bvb = true;
 			this.isBot = true;
-			this.pvp = false;
-			this.pvb = false;
+			this.modeID = 2;
 		}
 	}
 
@@ -307,6 +309,7 @@ class LightingScene extends CGFscene{
 		console.log("start game!");
 		this.reset();
 		this.setMode();
+		this.interface.addActions();
 		this.state = this.stateEnum.start;
 		this.start = true;
 		this.initTime = this.time;
@@ -317,6 +320,16 @@ class LightingScene extends CGFscene{
 	quitGame(){
 		this.state = this.stateEnum.gameOver;
 		this.start = false;
+	}
+
+	gameMovie(){
+		this.board.showValid = false;
+		(async function loop(board) {
+			for (let i = 0; i < board.allBoards.length; i++) {
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				board.updateBoard(board.allBoards[i]);
+			}
+		})(this.board);
 	}
 
 	reset(){
@@ -336,7 +349,8 @@ class LightingScene extends CGFscene{
 
 	redoPlay(){
 		if(this.board.saveBoards.length < 1)
-		return;
+			return;
+
 		var string = this.board.saveBoards.pop();
 		this.board.allBoards.push(string);
 		this.board.updateBoard(string);
@@ -414,6 +428,7 @@ class LightingScene extends CGFscene{
 
 	parseEndGame(result){
 		if(result == "1"){
+			this.won = true;
 			this.state = this.stateEnum.gameOver;
 		}
 		else{
@@ -485,27 +500,42 @@ class LightingScene extends CGFscene{
 			return;
 
 		if(this.timePerPlay >= 30){
-				this.timeout();
-			}
+			this.timeout();
+		}
+		this.alreadyPlayed = true;
 
 		if(!this.piecePicked && !this.isBot){
 			return;
 		}
 
-		this.alreadyPlayed = true;
+		switch(this.modeID){
+			case 0:
+				this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
+				this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
+				break;
+
+			case 1:
+				if(this.game.currentPlayer == 1){
+					this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
+					this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
+				}
+				else{
+					var n = this.randomNumberBetweenInterval(0, (this.board.movesArray.length-1));
+					this.game.curMove[0] = this.board.movesArray[n][0];
+					this.game.curMove[1] = this.board.movesArray[n][1];	
+				}
+				break;
+
+			case 2:
+				var n = this.randomNumberBetweenInterval(0, (this.board.movesArray.length-1));
+				this.game.curMove[0] = this.board.movesArray[n][0];
+				this.game.curMove[1] = this.board.movesArray[n][1];	
+				break;
+
+			default:
+				break;
+		}
 		
-		if((!this.isBot && this.pvp) || (this.isBot && this.pvb && this.game.currentPlayer == 1)){
-			this.game.curMove[0] = Math.floor((this.newPiece-1)/20);
-			this.game.curMove[1] =  Math.floor((this.newPiece-1)%20);
-		}
-		else if((this.isBot && this.pvb && this.game.currentPlayer == 0) || (this.isBot && this.bvb)){
-			var n = this.randomNumberBetweenInterval(0, (this.board.movesArray.length-1));
-			this.game.curMove[0] = this.board.movesArray[n][0];
-			this.game.curMove[1] = this.board.movesArray[n][1];	
-			console.log("bot turn");
-		}
-
-
 		if(!this.stateInit){
 			let cur = JSON.stringify(this.game.curMove);
 			for(var i=0; i < this.board.movesArray.length; i++){
@@ -521,6 +551,10 @@ class LightingScene extends CGFscene{
 	}
 
 	stateMachine(state){
+
+		if(state != this.stateEnum.start && this.start == false){
+			state = this.stateEnum.gameOver;
+		}
 
 		switch (state){
 			case this.stateEnum.start:
@@ -564,17 +598,14 @@ class LightingScene extends CGFscene{
 
 			case this.stateEnum.gameOver:
 				if(!this.stateInit){
-					console.log("Game ended!");
 					this.gameEnded = true;
 					this.stateInit = true;
+					this.interface.addMovie();
+					console.log("aqui");
 				}
 				break;
 		}
-
-	}
-
-
-					
+	}				
 }
 
 

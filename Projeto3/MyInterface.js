@@ -25,9 +25,9 @@ class MyInterface extends CGFinterface {
         this.gui.add(this.scene, 'quitGame').name('End Game');
         //this.gui.add(this.scene, 'bot').name('Bot');
         this.gui.add(this.scene, 'mode', [ 'player vs player', 'player vs bot', 'bot vs bot' ] );
-        var f = this.gui.addFolder('Actions');
-        f.add(this.scene, 'redoPlay').name('redo');
-        f.add(this.scene, 'undoPlay').name('undo');
+        // var f = this.gui.addFolder('Actions');
+        // f.add(this.scene, 'redoPlay').name('redo');
+        // f.add(this.scene, 'undoPlay').name('undo');
 
 
         this.initKeys();
@@ -75,5 +75,21 @@ class MyInterface extends CGFinterface {
         }
 
         this.views = this.gui.add(this.scene, 'viewSelected', this.scene.cameraNamestoIndex).onChange(this.scene.onChangeCamera.bind(this.scene)).name('Views');
+    }
+
+    addActions(){
+        if(!this.scene.isBot){
+            this.f = this.gui.addFolder('Actions');
+            this.f.add(this.scene, 'redoPlay').name('redo');
+            this.f.add(this.scene, 'undoPlay').name('undo');
+        }
+    }
+    addMovie(){
+        if(this.scene.gameEnded){
+            if(this.movie != null)
+                this.gui.remove(this.movie);
+                
+            this.movie = this.gui.add(this.scene, 'gameMovie').name('Game Movie');
+        }
     }
 }
