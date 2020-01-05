@@ -46,7 +46,7 @@
         <texture id="floorTexture" file="scenes/images/floor.jpg" />
         <texture id="steelTexture" file="scenes/images/steel.jpg" />
         <texture id="drawerTexture" file="scenes/images/drawer.jpg" />
-        <texture id="chairTexture" file="scenes/images/black.jpg" />
+        <texture id="chairTexture" file="scenes/images/chair.jpg" />
         <texture id="whiteTexture" file="scenes/images/white.jpg" />
         <texture id="paintingTexture" file="scenes/images/painting.jpg" />
         <texture id="landscapeTexture" file="scenes/images/landscape.jpg" />

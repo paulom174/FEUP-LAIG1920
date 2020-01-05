@@ -101,6 +101,12 @@ class MyBoard extends CGFobject {
         this.movesArray = JSON.parse(movesString);
         this.showValid = true;
     }
+
+    oddr_offset_to_pixel(coords){ //1.147
+        var x = (2/Math.sqrt(3)) * Math.sqrt(3) * (coords[1] + 0.5 * (coords[0]&1));
+        var y = (2/Math.sqrt(3) + 0.03) * 3/2 * coords[0];
+        return [x,y];
+    }
     
     display(){
         this.scene.pushMatrix();

@@ -28,8 +28,8 @@
         <omni id="demoLight" enabled="1">
             <location x="15" y="10" z="15" w="1.0" />
             <ambient r="0" g="0" b="0" a="1.0" />
-            <diffuse r="0.1" g="0.1" b="0.1" a="1.0" />
-            <specular r="1.0" g="1.0" b="1.0" a="1.0" />
+            <diffuse r="1.0" g="1.0" b="1.0" a="1.0" />
+            <specular r="0.3" g="0.3" b="0.3" a="1.0" />
             <attenuation constant="1" linear="0" quadratic="0" />
         </omni>
         <!-- <omni id="Light1" enabled="1">
@@ -64,7 +64,7 @@
         <texture id="greenTexture" file="scenes/images/green.jpg" />
         <texture id="orangeTexture" file="scenes/images/orange.jpg" />
         <texture id="appleTexture" file="scenes/images/apple.jpg" />
-        <texture id="greenSofaTexture" file="scenes/images/darkred.jpg" />
+        <texture id="greenSofaTexture" file="scenes/images/greenSofa.jpg" />
         <texture id="slime" file="scenes/images/slime.jpg" />
         <texture id="robot" file="scenes/images/robot.jpg" />
         <texture id="black_robot" file="scenes/images/black_robot.jpg" />

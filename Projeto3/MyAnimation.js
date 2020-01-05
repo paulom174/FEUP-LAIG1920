@@ -12,13 +12,19 @@ class MyAnimation extends CGFobject {
         
         this.counter = 0;
         this.anime = false;
+        
+        this.timePassed = 0;
+        this.onEndCB = null;
+
+        if(keyframes == null)
+            return;
 
         this.lastKey = this.keyframes[0];
         this.nextKey = this.keyframes[1];
         this.keyON = this.lastKey;
 
         this.frameTime = this.keyframes[1].instant - this.keyframes[0].instant;
-        this.timePassed = 0;
+
     }
 
     switchKey(){
@@ -26,6 +32,8 @@ class MyAnimation extends CGFobject {
         if(this.counter == (this.keyframes.length-2)){
             this.anime= false;
             this.keyON = this.keyframes[this.keyframes.length-1];
+            if(this.onEndCB != null)
+                this.onEndCB();
             return;
         }
 
@@ -34,17 +42,29 @@ class MyAnimation extends CGFobject {
         this.nextKey = this.keyframes[(this.counter+1)];
         this.timePassed =0;
         this.frameTime = this.keyframes[(this.counter + 1)].instant - this.keyframes[this.counter].instant;
+    }
 
-
+    replaceKeyframes(keyframes){
+        this.keyframes = keyframes;
+        this.timePassed = 0;
+        this.anime = false;
+        this.lastKey = this.keyframes[0];
+        this.nextKey = this.keyframes[1];
+        this.keyON = this.lastKey;
+        this.frameTime = this.keyframes[1].instant - this.keyframes[0].instant;
+        this.counter = 0;
+        this.onEndCB = null;
     }
 
     startAnimation(){
         this.anime = true;
     }
 
+    setEndCallback(func){
+        this.onEndCB = func;
+    }
+
     update(time){
-
-
         if(this.anime == false){
             return;
         }
@@ -58,17 +78,11 @@ class MyAnimation extends CGFobject {
             }
         }
         this.updateKeyframe(this.timePassed/this.frameTime);
-
-
-        
-
     }
 
     updateKeyframe(factor){
 
         this.keyON = this.keyON.calcKeyframe(this.lastKey, this.nextKey, factor);
-
-
     }
 
     apply(){

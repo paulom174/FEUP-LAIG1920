@@ -18,6 +18,7 @@ class LightingScene extends CGFscene{
 		this.initTime =0;
 		this.timePerPlay =0;
 		this.initTimePlay =0;
+		this.animating_piece = false;
 
 	}
 
@@ -41,6 +42,8 @@ class LightingScene extends CGFscene{
 		this.loadScene("cena1.xml", "cena1");
 		this.loadScene("cena2.xml", "cena2");
 		this.loadScene("cena3.xml", "cena3");
+
+		this.initAnimations();
 	}
 
 	loadScene(filename, name){
@@ -97,7 +100,6 @@ class LightingScene extends CGFscene{
 		
         this.initCameras();
 		this.initLights();
-		this.initMaterials();
 
         this.sceneInited = true;
 	}
@@ -113,9 +115,18 @@ class LightingScene extends CGFscene{
 		if(this.start){
 			this.timePerPlay += (dif);
 			this.total += (dif);
+
+			if(this.animating_piece) {	
+				console.log("anim");
+				this.pieceAnime.update(dif);
+			}
 		}	
         //this.graph.updateAnimation(dif/1000);
-    }
+	}
+	
+	initAnimations(){
+		this.pieceAnime = new MyAnimation(this, 0, null);
+	}
 
     initLights() {
         var i = 0;
@@ -229,6 +240,15 @@ class LightingScene extends CGFscene{
 
 		this.stateMachine(this.state);
 		this.drawBoard();
+
+		
+		if(this.animating_piece) {	
+			console.log("anim");
+			this.pushMatrix();
+			this.pieceAnime.apply();
+			this.board.piece.display();
+			this.popMatrix();
+		}
 
 		
 		this.clearPickRegistration();
@@ -395,6 +415,52 @@ class LightingScene extends CGFscene{
 
 	getMoveRequest(data){
 		this.response = data.target.response;
+
+		//chamar animacao (on finish -> updateboard)
+
+		this.animateMove();
+		
+	}
+	
+	animateMove(){
+
+		
+		//let location_coords = this.game.curMove;
+		console.log(this.game.curMove);
+		//let location_scene = this.board.oddr_offset_to_pixel([this.game.curMove]);
+
+		let location_scene = this.board.oddr_offset_to_pixel([5,1]);
+
+		
+		
+		let start = [location_scene[0], 2, location_scene[1]];
+		let end = [location_scene[0], 0, location_scene[1]];
+
+				
+		// let start = [0, 20, 0];
+		// let end = [0, 0, 0];
+		
+		let keyframes = [];
+
+		// var keyframe1 = new MyKeyFrame(this, 0, start, [0.1,0.1,0.1], [0,0,0]);
+		// var keyframe2 = new MyKeyFrame(this, 1, end, [1,1,1], [0,0,360*Math.PI/180]);
+
+		
+		var keyframe1 = new MyKeyFrame(this, 0, start, [1,1,1], [90*Math.PI/180,0,0]);
+		var keyframe2 = new MyKeyFrame(this, 5, end, [1,1,1], [90*Math.PI/180,0,0]);
+		keyframes.push(keyframe1);
+		keyframes.push(keyframe2);
+
+		this.pieceAnime.replaceKeyframes(keyframes);
+
+		this.pieceAnime.setEndCallback(this.onAnimationComplete.bind(this));
+		this.pieceAnime.startAnimation();
+		this.animating_piece = true;
+	}
+
+	onAnimationComplete(){
+
+		this.animating_piece = false;
 		this.board.allBoards.push(this.response);
 		this.board.updateBoard(this.response);
 		this.changePlayers();
@@ -602,6 +668,7 @@ class LightingScene extends CGFscene{
 			case this.stateEnum.gameOver:
 				if(!this.stateInit){
 					this.gameEnded = true;
+					this.start = false;
 					this.stateInit = true;
 					this.interface.addMovie();
 					console.log("aqui");
