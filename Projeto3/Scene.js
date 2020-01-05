@@ -19,6 +19,7 @@ class LightingScene extends CGFscene{
 		this.timePerPlay =0;
 		this.initTimePlay =0;
 		this.animating_piece = false;
+		this.animating_tower = false;
 
 	}
 
@@ -119,12 +120,16 @@ class LightingScene extends CGFscene{
 			if(this.animating_piece) {	
 				this.pieceAnime.update(dif);
 			}
+			if(this.animating_tower) {
+				this.towerAnime.update(dif);
+			}
 		}	
         //this.graph.updateAnimation(dif/1000);
 	}
 	
 	initAnimations(){
 		this.pieceAnime = new MyAnimation(this, 0, null);
+		this.towerAnime = new MyAnimation(this, 0, null);
 	}
 
     initLights() {
@@ -249,6 +254,17 @@ class LightingScene extends CGFscene{
 			else
 				this.board.black.apply();
 			this.board.hex.display();
+			this.popMatrix();
+		}
+
+		if(this.animating_tower) {	
+			this.pushMatrix();
+			this.towerAnime.apply();
+			if(this.game.currentPlayer == 0)
+				this.board.beje.apply();
+			else
+				this.board.black.apply();
+			this.board.tower.display();
 			this.popMatrix();
 		}
 
@@ -411,6 +427,13 @@ class LightingScene extends CGFscene{
 
 	getCheckHex(data){
 		this.response = data.target.response;
+		// var n = this.response.lastIndexOf("[");
+
+		// let board = this.response.substring(1, n-1);
+		// let coords = this.response.substring(n, this.response.length-1);
+		// console.log(board);
+		// console.log(coords);
+
 		this.parseHex(this.response);
 		this.changeCamera();
 	}
@@ -477,16 +500,65 @@ class LightingScene extends CGFscene{
 		this.stateInit = false;
 	}
 
-	parseHex(boardString){
-		this.animateTower(boardString);
+	parseHex(){
+		this.animateTower();
 	}
 
-	animateTower(boardString){
-		this.onTowerComplete(boardString);
+	getTowerCoords(boardString){
+		
+		let newBoard = JSON.parse(boardString);
+		let oldBoard = this.board.boardArray;
+
+		for(var i= 0; i < oldBoard.length; i++) {
+			let line = oldBoard[i];
+
+            for(var j = 0; j < line.length; j++) {
+
+				let oldCell = line[j];
+				let newCell = newBoard[i][j];
+
+				if(oldCell != newCell && (newCell == 4 || newCell == 2)) {
+					return [i,j];
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	animateTower(){
+		let coords = this.getTowerCoords(this.response);
+
+		if(coords == -1){
+			this.onTowerComplete();
+			return;
+		}
+
+		let location_scene = this.board.oddr_offset_to_pixel(coords);
+
+		let pos = [location_scene[0], 0, location_scene[1]];
+		//let end = [location_scene[0], 0, location_scene[1]];
+		let keyframes = [];
+
+		var keyframe1 = new MyKeyFrame(this, 0, pos, [0,0,0], [0,0,0]);
+		var keyframe2 = new MyKeyFrame(this, 0.5, pos, [0.8,0.1,0.8], [0,0,0]);
+		var keyframe3 = new MyKeyFrame(this, 1, pos, [0.8,1.2,0.8], [0,0,0]);
+		keyframes.push(keyframe1);
+		keyframes.push(keyframe2);
+		keyframes.push(keyframe3);
+
+		this.towerAnime.replaceKeyframes(keyframes);
+
+		this.towerAnime.setEndCallback(this.onTowerComplete.bind(this));
+		this.towerAnime.startAnimation();
+		this.animating_tower = true;
+
+		//this.onTowerComplete(boardString);
 	}
 	
-	onTowerComplete(boardString){
-		this.board.updateBoard(boardString);
+	onTowerComplete(){
+		this.animating_tower = false;
+		this.board.updateBoard(this.response);
 		this.state = this.stateEnum.validMoves;
 		this.stateInit = false;
 	}
