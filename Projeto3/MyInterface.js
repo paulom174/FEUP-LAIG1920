@@ -78,10 +78,18 @@ class MyInterface extends CGFinterface {
     }
 
     addActions(){
+        if(this.redo){
+            this.gui.remove(this.redo);
+            this.redo = null;
+        }
+        if(this.undo){
+            this.gui.remove(this.undo);
+            this.undo = null;
+        }
+        
         if(!this.scene.isBot){
-            this.f = this.gui.addFolder('Actions');
-            this.f.add(this.scene, 'redoPlay').name('redo');
-            this.f.add(this.scene, 'undoPlay').name('undo');
+            this.redo = this.gui.add(this.scene, 'redoPlay').name('redo');
+            this.undo = this.gui.add(this.scene, 'undoPlay').name('undo');
         }
     }
     addMovie(){

@@ -25,7 +25,7 @@ class LightingScene extends CGFscene{
 		super.init(application);
 		this.graphs = new Map();
 		this.graphsName = [];
-		this.curScene = "demo";
+		this.curScene = "cena1";
 
 		this.game = [];
 		this.stateEnum = Object.freeze({"start":1, "init":2, "validMoves":3, "makeMove":4, "checkEndGame":5, "checkHex":6, "gameOver":7, "gameMovie":8, "end":10});
@@ -38,8 +38,9 @@ class LightingScene extends CGFscene{
 
 		this.scenesOnHold = 0;
 
-		this.loadScene("demo.xml", "demo");
-		this.loadScene("exp.xml", "exp");
+		this.loadScene("cena1.xml", "cena1");
+		this.loadScene("cena2.xml", "cena2");
+		this.loadScene("cena3.xml", "cena3");
 	}
 
 	loadScene(filename, name){
@@ -224,9 +225,9 @@ class LightingScene extends CGFscene{
 		//this.graph.displayScene();
 		this.updateHTML();
 
+		this.graph.displayScene();
 
 		this.stateMachine(this.state);
-		this.table.display();
 		this.drawBoard();
 
 		
@@ -313,6 +314,8 @@ class LightingScene extends CGFscene{
 		this.state = this.stateEnum.start;
 		this.start = true;
 		this.initTime = this.time;
+		this.total = 0;
+		this.timePerPlay = 0;
 		this.stateInit = false;
 		this.setupConditions();
 	}
