@@ -117,7 +117,6 @@ class LightingScene extends CGFscene{
 			this.total += (dif);
 
 			if(this.animating_piece) {	
-				console.log("anim");
 				this.pieceAnime.update(dif);
 			}
 		}	
@@ -243,10 +242,13 @@ class LightingScene extends CGFscene{
 
 		
 		if(this.animating_piece) {	
-			console.log("anim");
 			this.pushMatrix();
 			this.pieceAnime.apply();
-			this.board.piece.display();
+			if(this.game.currentPlayer == 1)
+				this.board.beje.apply();
+			else
+				this.board.black.apply();
+			this.board.hex.display();
 			this.popMatrix();
 		}
 
@@ -423,42 +425,28 @@ class LightingScene extends CGFscene{
 	}
 	
 	animateMove(){
+		let location_scene = this.board.oddr_offset_to_pixel(this.game.curMove);
 
-		
-		//let location_coords = this.game.curMove;
-		console.log(this.game.curMove);
-		//let location_scene = this.board.oddr_offset_to_pixel([this.game.curMove]);
-
-		let location_scene = this.board.oddr_offset_to_pixel([5,1]);
-
-		
-		
-		let start = [location_scene[0], 2, location_scene[1]];
+		let start = [location_scene[0], 20, location_scene[1]];
+		let mid = [location_scene[0], 4, location_scene[1]];
 		let end = [location_scene[0], 0, location_scene[1]];
-
-				
-		// let start = [0, 20, 0];
-		// let end = [0, 0, 0];
-		
 		let keyframes = [];
 
-		// var keyframe1 = new MyKeyFrame(this, 0, start, [0.1,0.1,0.1], [0,0,0]);
-		// var keyframe2 = new MyKeyFrame(this, 1, end, [1,1,1], [0,0,360*Math.PI/180]);
-
-		
-		var keyframe1 = new MyKeyFrame(this, 0, start, [1,1,1], [90*Math.PI/180,0,0]);
-		var keyframe2 = new MyKeyFrame(this, 5, end, [1,1,1], [90*Math.PI/180,0,0]);
+		var keyframe1 = new MyKeyFrame(this, 0, start, [0,0,0], [0,0,0]);
+		var keyframe2 = new MyKeyFrame(this, 0.4, mid, [1,1,1], [0,360*Math.PI/180,0]);
+		var keyframe3 = new MyKeyFrame(this, 1, end, [1,1,1], [0,720*Math.PI/180,0]);
 		keyframes.push(keyframe1);
 		keyframes.push(keyframe2);
+		keyframes.push(keyframe3);
 
 		this.pieceAnime.replaceKeyframes(keyframes);
 
-		this.pieceAnime.setEndCallback(this.onAnimationComplete.bind(this));
+		this.pieceAnime.setEndCallback(this.onPieceAnimationComplete.bind(this));
 		this.pieceAnime.startAnimation();
 		this.animating_piece = true;
 	}
 
-	onAnimationComplete(){
+	onPieceAnimationComplete() {
 
 		this.animating_piece = false;
 		this.board.allBoards.push(this.response);
@@ -490,6 +478,14 @@ class LightingScene extends CGFscene{
 	}
 
 	parseHex(boardString){
+		this.animateTower(boardString);
+	}
+
+	animateTower(boardString){
+		this.onTowerComplete(boardString);
+	}
+	
+	onTowerComplete(boardString){
 		this.board.updateBoard(boardString);
 		this.state = this.stateEnum.validMoves;
 		this.stateInit = false;

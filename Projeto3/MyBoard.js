@@ -104,52 +104,51 @@ class MyBoard extends CGFobject {
 
     oddr_offset_to_pixel(coords){ //1.147
         var x = (2/Math.sqrt(3)) * Math.sqrt(3) * (coords[1] + 0.5 * (coords[0]&1));
-        var y = (2/Math.sqrt(3) + 0.03) * 3/2 * coords[0];
+        var y = (2/Math.sqrt(3)) * 3/2 * coords[0];
         return [x,y];
     }
     
     display(){
         this.scene.pushMatrix();
-        this.scene.rotate(Math.PI/2, 1,0,0);
+        //this.scene.rotate(Math.PI/2, 1,0,0);
 
         for(var i= 0; i < this.boardArray.length; i++){
-            this.scene.pushMatrix();
             for(var j = 0; j < this.boardArray[i].length; j++){
-                this.scene.translate(2,0,0);
                 
-                if((i % 2) ==1){
-                    this.scene.pushMatrix();
-                    this.scene.translate(1,0,0);
-                }
+                let pos = this.oddr_offset_to_pixel([i,j]);
+                
+                this.scene.pushMatrix();
+                this.scene.translate(pos[0],0,pos[1]);
+                
+                // if((i % 2) ==1){
+                //     this.scene.pushMatrix();
+                //     this.scene.translate(1,0,0);
+                // }
                 if(this.boardArray[i][j] == 0){
                     this.piece.changeColor(this.white);
                 }
-                if(this.boardArray[i][j] == 1){
+                else if(this.boardArray[i][j] == 1){
                     this.scene.pushMatrix();
                     this.piece.changeColor(this.black);
-                    this.scene.rotate(-Math.PI/2, 1,0,0);
                     this.hex.display();
                     this.scene.popMatrix();
                 }
-                if(this.boardArray[i][j] == 3){
+                else if(this.boardArray[i][j] == 3){
                     this.scene.pushMatrix();
                     this.piece.changeColor(this.beje);
-                    this.scene.rotate(-Math.PI/2, 1,0,0);
                     this.hex.display();
                     this.scene.popMatrix();
                 }
-                if(this.boardArray[i][j] == 4){
+                else if(this.boardArray[i][j] == 4){
                     this.scene.pushMatrix();
                     this.piece.changeColor(this.beje);
-                    this.scene.rotate(-Math.PI/2, 1,0,0);
                     this.scene.scale(0.8,1.3,0.8);
                     this.tower.display();
                     this.scene.popMatrix();
                 }
-                if(this.boardArray[i][j] == 2){
+                else if(this.boardArray[i][j] == 2){
                     this.scene.pushMatrix();
                     this.piece.changeColor(this.black);
-                    this.scene.rotate(-Math.PI/2, 1,0,0);
                     this.scene.scale(0.8,1.5,0.8);
                     this.tower.display();
                     this.scene.popMatrix();
@@ -166,13 +165,14 @@ class MyBoard extends CGFobject {
                 //Id for pickable objects must be >= 1
                 this.scene.registerForPick((j + 1)+i*20, this.piece);
 
+                this.scene.rotate(-Math.PI/2, 1,0,0);
                 this.piece.display();
-                if((i % 2) ==1){
-                    this.scene.popMatrix();
-                }
+                this.scene.popMatrix();
+                // if((i % 2) ==1){
+                //     this.scene.popMatrix();
+                //}
             }
-            this.scene.popMatrix();
-            this.scene.translate(0,1.8,0);
+            //this.scene.translate(0,1.8,0);
         }
         this.scene.popMatrix();
     }
